@@ -1,607 +1,294 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revanth's Tools Dashboard</title>
+    <title>Pro Spreadsheet Studio</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {} }
+        }
+    </script>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+    <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
+    <script src="https://jsuites.net/v4/jsuites.js"></script>
+    <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        /* CSS Variables & RGB definitions for Glassmorphism */
-        :root {
-            --font-main: 'Plus Jakarta Sans', sans-serif;
-            --transition-smooth: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        /* Dark Theme (Default & Premium looking) */
-        [data-theme="dark"] {
-            --bg-base: #030712;
-            --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --card-bg-rgb: 17, 24, 39;
-            --card-border: rgba(255, 255, 255, 0.08);
-            --accent-primary: #6366f1;
-            --accent-secondary: #a855f7;
-            --glow-1: #4f46e5;
-            --glow-2: #c026d3;
-            --header-bg: rgba(3, 7, 18, 0.6);
-        }
-
-        /* Light Theme (Clean & Crisp) */
-        [data-theme="light"] {
-            --bg-base: #f8fafc;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --card-bg-rgb: 255, 255, 255;
-            --card-border: rgba(0, 0, 0, 0.08);
-            --accent-primary: #4f46e5;
-            --accent-secondary: #9333ea;
-            --glow-1: #818cf8;
-            --glow-2: #e879f9;
-            --header-bg: rgba(248, 250, 252, 0.6);
-        }
-
-        /* Reset */
-        * {
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: var(--font-main);
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        body {
-            background-color: var(--bg-base);
-            color: var(--text-primary);
-            min-height: 100vh;
+        #app-container {
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
-            position: relative;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            height: 100vh;
         }
 
-        /* --- Ambient Background Glows --- */
-        .ambient-glow {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(120px);
-            z-index: -1;
-            opacity: 0.4;
-            animation: float 15s infinite ease-in-out alternate;
-        }
-
-        .glow-1 {
-            top: -10%;
-            left: -10%;
-            width: 50vw;
-            height: 50vw;
-            background: var(--glow-1);
-        }
-
-        .glow-2 {
-            bottom: -10%;
-            right: -10%;
-            width: 40vw;
-            height: 40vw;
-            background: var(--glow-2);
-            animation-delay: -5s;
-        }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(10%, 10%) scale(1.1); }
-        }
-
-        /* --- Header --- */
-        header {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 100;
-            background: var(--header-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--card-border);
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.25rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .logo-icon {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 1.5rem;
-        }
-
-        .theme-toggle {
-            background: rgba(var(--card-bg-rgb), 0.5);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            transition: var(--transition-bounce);
-            backdrop-filter: blur(8px);
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1) rotate(15deg);
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-        }
-
-        /* --- Hero Section --- */
-        .hero {
-            margin-top: 100px;
-            padding: 4rem 5% 2rem;
-            text-align: center;
-        }
-
-        .hero-badge {
-            display: inline-block;
-            padding: 0.5rem 1.25rem;
-            background: rgba(var(--card-bg-rgb), 0.4);
-            border: 1px solid var(--card-border);
-            border-radius: 100px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-            backdrop-filter: blur(8px);
-            animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-
-        .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-            letter-spacing: -1px;
-            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        .text-gradient {
-            background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            font-size: 1.125rem;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        /* --- Main Grid --- */
-        main {
-            flex: 1;
-            padding: 2rem 5% 5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
-        }
-
-        /* --- Glassmorphism Cards --- */
-        .card {
-            background: rgba(var(--card-bg-rgb), 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--card-border);
-            border-radius: 24px;
-            padding: 2.5rem 2rem;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
+        .main-workspace {
+            flex-grow: 1;
             position: relative;
             overflow: hidden;
-            transition: var(--transition-smooth);
-            opacity: 0;
-            transform: translateY(40px);
-            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Staggered entrance animations */
-        .card:nth-child(1) { animation-delay: 0.3s; }
-        .card:nth-child(2) { animation-delay: 0.4s; }
-        .card:nth-child(3) { animation-delay: 0.5s; }
-        .card:nth-child(4) { animation-delay: 0.6s; }
-        .card:nth-child(5) { animation-delay: 0.7s; }
-        .card:nth-child(6) { animation-delay: 0.8s; }
-        .card:nth-child(7) { animation-delay: 0.9s; }
-        .card:nth-child(8) { animation-delay: 1.0s; }
-        .card:nth-child(9) { animation-delay: 1.1s; }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
-            opacity: 0;
-            transition: var(--transition-smooth);
-            z-index: 0;
-        }
-
-        .card:hover {
-            transform: translateY(-10px) scale(1.02);
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3), 
-                        0 0 30px -5px rgba(99, 102, 241, 0.2);
-        }
-
-        .card:hover::before {
-            opacity: 1;
-        }
-
-        .card-content {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .icon-box {
-            width: 64px;
-            height: 64px;
-            border-radius: 18px;
-            background: linear-gradient(135deg, rgba(var(--card-bg-rgb), 0.8), rgba(var(--card-bg-rgb), 0.2));
-            border: 1px solid var(--card-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            margin-bottom: 2rem;
-            color: var(--accent-primary);
-            transition: var(--transition-bounce);
-            box-shadow: 0 8px 16px -4px rgba(0,0,0,0.1);
-        }
-
-        .card:hover .icon-box {
-            transform: scale(1.1) rotate(-10deg);
-            background: var(--accent-primary);
-            color: white;
-            border-color: transparent;
-        }
-
-        .card h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            letter-spacing: -0.5px;
-        }
-
-        .card p {
-            color: var(--text-secondary);
-            line-height: 1.7;
-            margin-bottom: 2.5rem;
-            flex-grow: 1;
-            font-size: 1.05rem;
-        }
-
-        .card-action {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-weight: 600;
-            color: var(--text-primary);
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--card-border);
-            transition: var(--transition-smooth);
-        }
-
-        .action-text {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .action-arrow {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(var(--card-bg-rgb), 0.8);
-            border: 1px solid var(--card-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition-bounce);
-        }
-
-        .card:hover .action-arrow {
-            background: var(--text-primary);
-            color: var(--bg-base);
-            transform: translateX(5px);
-        }
-
-        .card:hover .card-action {
-            color: var(--accent-primary);
-        }
-
-        /* Coming Soon Specifics */
-        .card.disabled {
-            cursor: not-allowed;
-            border-style: dashed;
-        }
-
-        .card.disabled:hover {
-            transform: none;
-            border-color: var(--card-border);
+        /* --- Custom Jspreadsheet Adjustments --- */
+        .jexcel_container { width: 100% !important; height: 100% !important; }
+        .jexcel_content { 
+            height: 100% !important; 
+            width: 100% !important;
             box-shadow: none;
         }
 
-        .card.disabled:hover .icon-box {
-            transform: none;
-            background: linear-gradient(135deg, rgba(var(--card-bg-rgb), 0.8), rgba(var(--card-bg-rgb), 0.2));
-            color: var(--text-secondary);
-            border-color: var(--card-border);
+        /* --- Advanced Dark Mode Theme for Spreadsheet --- */
+        html.dark .jexcel_container { background: #1f2937 !important; border-color: #374151 !important; }
+        html.dark .jexcel_content { background: #1f2937 !important; }
+        html.dark .jexcel tbody tr td {
+            background-color: #1f2937 !important;
+            color: #f3f4f6 !important;
+            border-bottom: 1px solid #374151 !important;
+            border-right: 1px solid #374151 !important;
         }
+        html.dark .jexcel thead td {
+            background-color: #111827 !important;
+            color: #9ca3af !important;
+            border-bottom: 1px solid #374151 !important;
+            border-right: 1px solid #374151 !important;
+        }
+        html.dark .jexcel tbody tr td.readonly { background-color: #374151 !important; }
+        html.dark .jexcel tbody tr td.highlight { background-color: #374151 !important; }
+        html.dark .jexcel_toolbar { background-color: #111827 !important; border-color: #374151 !important; color: #f3f4f6; }
+        html.dark .jexcel_toolbar i { color: #d1d5db !important; }
+        html.dark .jexcel_toolbar i:hover { background-color: #374151 !important; }
+        html.dark .jsuites-search-root input { background: #1f2937; color: white; border-color: #374151; }
+        html.dark .jexcel-filter { background: #111827 !important; color: white !important; border-color: #374151 !important;}
 
-        .card.disabled .action-arrow {
-            opacity: 0.5;
-        }
-
-        /* --- Footer --- */
-        footer {
-            text-align: center;
-            padding: 2rem 5%;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--card-border);
-            background: rgba(var(--card-bg-rgb), 0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        /* --- Animations --- */
-        @keyframes slideDown {
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* --- Responsive --- */
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .grid { grid-template-columns: 1fr; }
-            .card { padding: 2rem 1.5rem; }
-        }
+        /* Dropdown mechanics */
+        .dropdown:hover .dropdown-menu { display: block; }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
 
-    <div class="ambient-glow glow-1"></div>
-    <div class="ambient-glow glow-2"></div>
-
-    <header>
-        <div class="logo">
-            <i class="fa-solid fa-layer-group logo-icon"></i> 
-            <span>Revanth's Workspace</span>
-        </div>
-        <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">
-            <i class="fa-solid fa-moon"></i>
-        </button>
-    </header>
-
-    <div class="hero">
-        <div class="hero-badge">System Architecture & Tooling</div>
-        <h1>Engineered for <br><span class="text-gradient">Efficiency</span></h1>
-        <p>A centralized, high-performance dashboard for web-based utility applications. Built to streamline complex data processing and global time management.</p>
-    </div>
-
-    <main>
-        <div class="grid">
+    <div id="app-container">
+        
+        <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center justify-between z-10 shadow-sm flex-none transition-colors duration-200">
             
-            <a href="https://revanthabbati.github.io/FileConverter/" target="_blank" rel="noopener noreferrer" class="card">
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i class="fa-solid fa-code"></i>
-                    </div>
-                    <h2>Data Formatter Pro</h2>
-                    <p>An advanced conversion utility to parse, convert, and beautify data between XML and JSON architectures with precision.</p>
-                    <div class="card-action">
-                        <span class="action-text">Launch Application</span>
-                        <div class="action-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                    </div>
+            <div class="flex items-center space-x-3">
+                <div class="bg-green-600 p-1.5 rounded text-white flex items-center justify-center">
+                    <span class="material-icons">table_chart</span>
                 </div>
-            </a>
-
-            <a href="https://revanthabbati.github.io/TimeZoneConverter/" target="_blank" rel="noopener noreferrer" class="card">
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i class="fa-solid fa-globe"></i>
-                    </div>
-                    <h2>Time Converter</h2>
-                    <p>A synchronized time management engine for accurately calculating and translating global time zones for remote operations.</p>
-                    <div class="card-action">
-                        <span class="action-text">Launch Application</span>
-                        <div class="action-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="https://revanthabbati.github.io/CharacterCount/" target="_blank" rel="noopener noreferrer" class="card">
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i class="fa-solid fa-text-width"></i>
-                    </div>
-                    <h2>Text Metrics Analyzer</h2>
-                    <p>A precision utility to instantly calculate character counts, word density, and string metrics for optimal content formatting.</p>
-                    <div class="card-action">
-                        <span class="action-text">Launch Application</span>
-                        <div class="action-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="https://revanthabbati.github.io/CallsTracker/" target="_blank" rel="noopener noreferrer" class="card">
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i class="fa-solid fa-phone-volume"></i>
-                    </div>
-                    <h2>Call Metrics Tracker</h2>
-                    <p>A comprehensive tracking dashboard designed to log, monitor, and analyze telephonic data and communication workflows efficiently.</p>
-                    <div class="card-action">
-                        <span class="action-text">Launch Application</span>
-                        <div class="action-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="https://revanthabbati.github.io/PayloadGenerator/" target="_blank" rel="noopener noreferrer" class="card">
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i class="fa-solid fa-cubes"></i>
-                    </div>
-                    <h2>Dynamic Payload Engine</h2>
-                    <p>A robust development tool to construct, format, and generate complex structured data payloads for API integration and testing.</p>
-                    <div class="card-action">
-                        <span class="action-text">Launch Application</span>
-                        <div class="action-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="https://revanthabbati.github.io/TicketsTracker/" target="_blank" rel="noopener noreferrer" class="card">
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i class="fa-solid fa-list-check"></i>
-                    </div>
-                    <h2>Ticket Allocation Engine</h2>
-                    <p>An intelligent tracking system to seamlessly manage, assign, and monitor support tickets and task distribution across team members.</p>
-                    <div class="card-action">
-                        <span class="action-text">Launch Application</span>
-                        <div class="action-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="https://revanthabbati.github.io/DTInternalDocuments/" target="_blank" rel="noopener noreferrer" class="card">
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i class="fa-solid fa-folder-open"></i>
-                    </div>
-                    <h2>Internal Document Portal</h2>
-                    <p>A secure, centralized repository for navigating, accessing, and managing internal DT documentation and operational guidelines.</p>
-                    <div class="card-action">
-                        <span class="action-text">Launch Application</span>
-                        <div class="action-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                    </div>
-                </div>
-            </a>
-
-            <a href="https://revanthabbati.github.io/CSVEditor/" target="_blank" rel="noopener noreferrer" class="card">
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i class="fa-solid fa-file-csv"></i>
-                    </div>
-                    <h2>Advanced CSV Studio</h2>
-                    <p>A powerful, interactive grid environment for parsing, editing, formatting, and managing tabular CSV datasets directly within the browser.</p>
-                    <div class="card-action">
-                        <span class="action-text">Launch Application</span>
-                        <div class="action-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                    </div>
-                </div>
-            </a>
-
-            <div class="card disabled">
-                <div class="card-content">
-                    <div class="icon-box" style="color: var(--text-secondary);">
-                        <i class="fa-solid fa-microchip"></i>
-                    </div>
-                    <h2 style="color: var(--text-secondary);">Module In Queue</h2>
-                    <p>New utility algorithms are currently compiling in the development pipeline. Dashboard will auto-update upon deployment.</p>
-                    <div class="card-action" style="color: var(--text-secondary);">
-                        <span class="action-text"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> Developing</span>
-                        <div class="action-arrow" style="background: transparent; border: none;"><i class="fa-solid fa-lock"></i></div>
-                    </div>
+                <div>
+                    <input type="text" id="doc-title" value="Untitled Spreadsheet" class="text-lg font-medium text-gray-800 dark:text-gray-100 bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-green-500 focus:outline-none transition-colors px-1 w-48 lg:w-64" />
                 </div>
             </div>
 
-        </div>
-    </main>
+            <div class="flex items-center space-x-2">
+                <input type="file" id="file-input" accept=".csv, .xlsx, .xls" class="hidden">
+                
+                <button id="btn-fullscreen" class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Toggle Fullscreen">
+                    <span class="material-icons text-sm">fullscreen</span>
+                </button>
 
-    <footer>
-        <p>&copy; <span id="year"></span> Revanth Reddy Abbati. Deployed and live.</p>
-    </footer>
+                <button id="btn-freeze" class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Freeze Top Row & First Column">
+                    <span class="material-icons text-sm">view_stream</span>
+                </button>
+
+                <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+
+                <button id="btn-theme" class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Toggle Dark/Light Mode">
+                    <span class="material-icons text-sm" id="theme-icon">dark_mode</span>
+                </button>
+
+                <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+
+                <button id="btn-new" class="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-1.5 rounded-md text-sm font-medium transition-colors">
+                    New
+                </button>
+                
+                <button id="btn-upload" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center space-x-1">
+                    <span class="material-icons text-sm">upload_file</span>
+                    <span>Open</span>
+                </button>
+
+                <div class="relative dropdown">
+                    <button class="bg-green-600 text-white hover:bg-green-700 px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 shadow-sm">
+                        <span class="material-icons text-sm">download</span>
+                        <span>Export</span>
+                        <span class="material-icons text-sm">expand_more</span>
+                    </button>
+                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-100 dark:border-gray-700 py-1 z-50">
+                        <a href="#" id="export-csv" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"><span class="material-icons text-sm mr-2 text-blue-500">description</span> Save as CSV</a>
+                        <a href="#" id="export-xlsx" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"><span class="material-icons text-sm mr-2 text-green-500">grid_on</span> Save as XLSX</a>
+                        <a href="#" id="export-pdf" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"><span class="material-icons text-sm mr-2 text-red-500">picture_as_pdf</span> Export to PDF</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-workspace">
+            <div id="spreadsheet" class="w-full h-full"></div>
+        </main>
+
+        <footer class="flex-none bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 text-center py-2 text-xs font-medium text-gray-500 dark:text-gray-400 z-10 transition-colors duration-200">
+            Developed by <span class="text-green-600 dark:text-green-400 font-bold">Revanth Reddy Abbati</span>
+        </footer>
+
+    </div>
 
     <script>
-        // Set dynamic year
-        document.getElementById('year').textContent = new Date().getFullYear();
+        window.jsPDF = window.jspdf.jsPDF;
+        let sheetInstance = null;
+        let isFrozen = false;
 
-        // Theme Toggling Logic
-        const themeBtn = document.getElementById('themeToggle');
-        const themeIcon = themeBtn.querySelector('i');
-        const htmlDoc = document.documentElement;
-
-        const initTheme = () => {
-            const savedTheme = localStorage.getItem('revanth-theme');
-            if (savedTheme) {
-                htmlDoc.setAttribute('data-theme', savedTheme);
-                updateIcon(savedTheme);
-            }
-        };
-
-        const updateIcon = (theme) => {
-            if (theme === 'dark') {
-                themeIcon.className = 'fa-solid fa-sun';
-            } else {
-                themeIcon.className = 'fa-solid fa-moon';
-            }
-        };
-
-        themeBtn.addEventListener('click', () => {
-            const currentTheme = htmlDoc.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.addEventListener('DOMContentLoaded', () => {
             
-            htmlDoc.setAttribute('data-theme', newTheme);
-            localStorage.setItem('revanth-theme', newTheme);
-            updateIcon(newTheme);
-        });
+            // --- Advanced Spreadsheet Initialization ---
+            function initSpreadsheet(data = [[]]) {
+                const container = document.getElementById('spreadsheet');
+                container.innerHTML = ''; 
 
-        initTheme();
+                sheetInstance = jspreadsheet(container, {
+                    data: data,
+                    minDimensions: [26, 100], // Start A-Z, 100 rows
+                    defaultColWidth: 100,
+                    search: true,    // Adds search bar to toolbar
+                    filters: true,   // Enables column dropdown filters
+                    tableOverflow: true,
+                    tableWidth: "100%",
+                    tableHeight: "100%",
+                    wordWrap: true,
+                    // The Formatting Toolbar
+                    toolbar: [
+                        { type: 'i', content: 'undo', onclick: () => sheetInstance.undo(), tooltip: 'Undo' },
+                        { type: 'i', content: 'redo', onclick: () => sheetInstance.redo(), tooltip: 'Redo' },
+                        { type: 'select', k: 'font-family', v: ['Arial', 'Verdana', 'Courier New', 'Times New Roman'] },
+                        { type: 'select', k: 'font-size', v: ['9px', '10px', '12px', '14px', '16px', '18px'] },
+                        { type: 'i', content: 'format_bold', k: 'font-weight', v: 'bold' },
+                        { type: 'i', content: 'format_italic', k: 'font-style', v: 'italic' },
+                        { type: 'color', content: 'format_color_text', k: 'color', tooltip: 'Text Color' },
+                        { type: 'color', content: 'format_color_fill', k: 'background-color', tooltip: 'Background Color' },
+                        { type: 'i', content: 'format_align_left', k: 'text-align', v: 'left' },
+                        { type: 'i', content: 'format_align_center', k: 'text-align', v: 'center' },
+                        { type: 'i', content: 'format_align_right', k: 'text-align', v: 'right' }
+                    ]
+                });
+            }
+
+            // Initialize on load
+            initSpreadsheet();
+
+            // --- Dark Mode / Theme Toggle ---
+            const btnTheme = document.getElementById('btn-theme');
+            const themeIcon = document.getElementById('theme-icon');
+            
+            btnTheme.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                if (document.documentElement.classList.contains('dark')) {
+                    themeIcon.innerText = 'light_mode';
+                } else {
+                    themeIcon.innerText = 'dark_mode';
+                }
+            });
+
+            // --- Fullscreen Toggle ---
+            document.getElementById('btn-fullscreen').addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => console.log(err));
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+
+            // --- Freeze Panes Toggle ---
+            document.getElementById('btn-freeze').addEventListener('click', () => {
+                isFrozen = !isFrozen;
+                const config = sheetInstance.getConfig();
+                
+                // Reinitialize grid with frozen settings
+                const currentData = sheetInstance.getData();
+                config.freezeColumns = isFrozen ? 1 : 0;
+                config.freezeRows = isFrozen ? 1 : 0;
+                
+                document.getElementById('spreadsheet').innerHTML = '';
+                sheetInstance = jspreadsheet(document.getElementById('spreadsheet'), config);
+                sheetInstance.setData(currentData);
+
+                // UI Feedback
+                document.getElementById('btn-freeze').classList.toggle('bg-gray-200');
+                document.getElementById('btn-freeze').classList.toggle('dark:bg-gray-600');
+            });
+
+            // --- File Processing (Upload) ---
+            const fileInput = document.getElementById('file-input');
+            const docTitle = document.getElementById('doc-title');
+
+            document.getElementById('btn-upload').addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                docTitle.value = file.name.split('.')[0];
+                const reader = new FileReader();
+                
+                reader.onload = (event) => {
+                    const workbook = XLSX.read(event.target.result, { type: 'binary' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+                    
+                    if(rawData.length > 0) initSpreadsheet(rawData);
+                };
+                reader.readAsBinaryString(file);
+                e.target.value = ''; 
+            });
+
+            // --- File Operations (New & Export) ---
+            document.getElementById('btn-new').addEventListener('click', () => {
+                if(confirm("Are you sure? Unsaved changes will be lost.")) {
+                    docTitle.value = "Untitled Spreadsheet";
+                    initSpreadsheet();
+                }
+            });
+
+            document.getElementById('export-csv').addEventListener('click', (e) => {
+                e.preventDefault();
+                sheetInstance.download();
+            });
+
+            document.getElementById('export-xlsx').addEventListener('click', (e) => {
+                e.preventDefault();
+                const finalData = [sheetInstance.getHeaders().split(','), ...sheetInstance.getData()];
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(finalData), "Sheet1");
+                XLSX.writeFile(workbook, `${docTitle.value || 'Data'}.xlsx`);
+            });
+
+            document.getElementById('export-pdf').addEventListener('click', (e) => {
+                e.preventDefault();
+                const doc = new jsPDF({ orientation: "landscape" });
+                doc.text(docTitle.value, 14, 15);
+                doc.autoTable({
+                    head: [sheetInstance.getHeaders().split(',')],
+                    body: sheetInstance.getData(),
+                    startY: 20,
+                    theme: document.documentElement.classList.contains('dark') ? 'grid' : 'striped',
+                    styles: { fontSize: 8 }
+                });
+                doc.save(`${docTitle.value || 'Data'}.pdf`);
+            });
+        });
     </script>
 </body>
 </html>
