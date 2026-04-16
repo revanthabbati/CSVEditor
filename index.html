@@ -42,6 +42,11 @@
             flex-grow: 1;
             position: relative;
             overflow: hidden;
+            background-color: #f3f4f6;
+        }
+        
+        html.dark .main-workspace {
+            background-color: #111827;
         }
 
         /* --- Custom Jspreadsheet Adjustments --- */
@@ -83,54 +88,54 @@
 
     <div id="app-container">
         
-        <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center justify-between z-10 shadow-sm flex-none transition-colors duration-200">
+        <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between z-20 shadow-sm flex-none transition-colors duration-200">
             
-            <div class="flex items-center space-x-3">
-                <div class="bg-green-600 p-1.5 rounded text-white flex items-center justify-center">
-                    <span class="material-icons">table_chart</span>
+            <div class="flex items-center space-x-4">
+                <div class="bg-green-600 p-2 rounded-lg shadow-sm text-white flex items-center justify-center">
+                    <span class="material-icons text-xl">table_chart</span>
                 </div>
                 <div>
-                    <input type="text" id="doc-title" value="Untitled Spreadsheet" class="text-lg font-medium text-gray-800 dark:text-gray-100 bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-green-500 focus:outline-none transition-colors px-1 w-48 lg:w-64" />
+                    <input type="text" id="doc-title" value="Untitled Spreadsheet" class="text-xl font-semibold text-gray-800 dark:text-gray-100 bg-transparent border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-green-500 focus:outline-none transition-colors px-1 py-0.5 w-64 lg:w-80" placeholder="Name your document..." />
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-3">
                 <input type="file" id="file-input" accept=".csv, .xlsx, .xls" class="hidden">
                 
-                <button id="btn-fullscreen" class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Toggle Fullscreen">
+                <button id="btn-fullscreen" class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Toggle Fullscreen">
                     <span class="material-icons text-sm">fullscreen</span>
                 </button>
 
-                <button id="btn-freeze" class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Freeze Top Row & First Column">
+                <button id="btn-freeze" class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Freeze Top Row & First Column">
                     <span class="material-icons text-sm">view_stream</span>
                 </button>
 
                 <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
 
-                <button id="btn-theme" class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Toggle Dark/Light Mode">
+                <button id="btn-theme" class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Toggle Dark/Light Mode">
                     <span class="material-icons text-sm" id="theme-icon">dark_mode</span>
                 </button>
 
                 <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
 
-                <button id="btn-new" class="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-1.5 rounded-md text-sm font-medium transition-colors">
-                    New
+                <button id="btn-new" class="text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                    New File
                 </button>
                 
-                <button id="btn-upload" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center space-x-1">
+                <button id="btn-upload" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 border border-gray-200 dark:border-gray-600 shadow-sm">
                     <span class="material-icons text-sm">upload_file</span>
-                    <span>Open</span>
+                    <span>Upload Data</span>
                 </button>
 
                 <div class="relative dropdown">
-                    <button class="bg-green-600 text-white hover:bg-green-700 px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 shadow-sm">
+                    <button class="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 shadow-md">
                         <span class="material-icons text-sm">download</span>
-                        <span>Export</span>
+                        <span>Download</span>
                         <span class="material-icons text-sm">expand_more</span>
                     </button>
-                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-100 dark:border-gray-700 py-1 z-50">
-                        <a href="#" id="export-csv" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"><span class="material-icons text-sm mr-2 text-blue-500">description</span> Save as CSV</a>
-                        <a href="#" id="export-xlsx" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"><span class="material-icons text-sm mr-2 text-green-500">grid_on</span> Save as XLSX</a>
+                    <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-100 dark:border-gray-700 py-1 z-50">
+                        <a href="#" id="export-csv" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"><span class="material-icons text-sm mr-2 text-blue-500">description</span> Save as .CSV</a>
+                        <a href="#" id="export-xlsx" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"><span class="material-icons text-sm mr-2 text-green-500">grid_on</span> Save as .XLSX</a>
                         <a href="#" id="export-pdf" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"><span class="material-icons text-sm mr-2 text-red-500">picture_as_pdf</span> Export to PDF</a>
                     </div>
                 </div>
@@ -142,7 +147,7 @@
         </main>
 
         <footer class="flex-none bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 text-center py-2 text-xs font-medium text-gray-500 dark:text-gray-400 z-10 transition-colors duration-200">
-            Developed by <span class="text-green-600 dark:text-green-400 font-bold">Revanth Reddy Abbati</span>
+            Developed by <span class="text-green-600 dark:text-green-400 font-bold tracking-wide">Revanth Reddy Abbati</span>
         </footer>
 
     </div>
@@ -240,13 +245,22 @@
                 const file = e.target.files[0];
                 if (!file) return;
 
+                // Update the UI title based on the uploaded file
                 docTitle.value = file.name.split('.')[0];
                 const reader = new FileReader();
                 
                 reader.onload = (event) => {
-                    const workbook = XLSX.read(event.target.result, { type: 'binary' });
+                    // FIX: Added cellDates to properly recognize date objects instead of serial codes
+                    const workbook = XLSX.read(event.target.result, { type: 'binary', cellDates: true });
                     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+                    
+                    // FIX: Added raw:false and dateNF to enforce string formatting for Dates & Times
+                    const rawData = XLSX.utils.sheet_to_json(worksheet, { 
+                        header: 1, 
+                        defval: "", 
+                        raw: false, 
+                        dateNF: 'yyyy-mm-dd hh:mm:ss' 
+                    });
                     
                     if(rawData.length > 0) initSpreadsheet(rawData);
                 };
@@ -255,6 +269,13 @@
             });
 
             // --- File Operations (New & Export) ---
+            
+            // Gets the current file name ensuring there is a fallback
+            const getFileName = () => {
+                const val = docTitle.value.trim();
+                return val ? val : 'Untitled Spreadsheet';
+            };
+
             document.getElementById('btn-new').addEventListener('click', () => {
                 if(confirm("Are you sure? Unsaved changes will be lost.")) {
                     docTitle.value = "Untitled Spreadsheet";
@@ -262,9 +283,13 @@
                 }
             });
 
+            // FIX: Using SheetJS for CSV export to maintain consistent file naming with doc title
             document.getElementById('export-csv').addEventListener('click', (e) => {
                 e.preventDefault();
-                sheetInstance.download();
+                const finalData = [sheetInstance.getHeaders().split(','), ...sheetInstance.getData()];
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(finalData), "Sheet1");
+                XLSX.writeFile(workbook, `${getFileName()}.csv`);
             });
 
             document.getElementById('export-xlsx').addEventListener('click', (e) => {
@@ -272,13 +297,13 @@
                 const finalData = [sheetInstance.getHeaders().split(','), ...sheetInstance.getData()];
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(finalData), "Sheet1");
-                XLSX.writeFile(workbook, `${docTitle.value || 'Data'}.xlsx`);
+                XLSX.writeFile(workbook, `${getFileName()}.xlsx`);
             });
 
             document.getElementById('export-pdf').addEventListener('click', (e) => {
                 e.preventDefault();
                 const doc = new jsPDF({ orientation: "landscape" });
-                doc.text(docTitle.value, 14, 15);
+                doc.text(getFileName(), 14, 15);
                 doc.autoTable({
                     head: [sheetInstance.getHeaders().split(',')],
                     body: sheetInstance.getData(),
@@ -286,7 +311,7 @@
                     theme: document.documentElement.classList.contains('dark') ? 'grid' : 'striped',
                     styles: { fontSize: 8 }
                 });
-                doc.save(`${docTitle.value || 'Data'}.pdf`);
+                doc.save(`${getFileName()}.pdf`);
             });
         });
     </script>
