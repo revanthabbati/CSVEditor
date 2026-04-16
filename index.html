@@ -9,7 +9,17 @@
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: { extend: {} }
+            theme: { 
+                extend: {
+                    colors: {
+                        slate: {
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                } 
+            }
         }
     </script>
     
@@ -42,104 +52,114 @@
             flex-grow: 1;
             position: relative;
             overflow: hidden;
-            background-color: #f8f9fa;
+            background-color: #f8fafc; /* Light mode bg */
         }
         
-        html.dark .main-workspace { background-color: #121212; }
+        /* Smooth transitions for theme switching */
+        * { transition: background-color 0.15s ease, border-color 0.15s ease; }
 
         /* --- Custom Jspreadsheet Adjustments --- */
-        .jexcel_container { width: 100% !important; height: 100% !important; }
-        .jexcel_content { 
-            height: 100% !important; 
-            width: 100% !important;
-            box-shadow: none;
+        .jexcel_container { width: 100% !important; height: 100% !important; border: none !important; }
+        .jexcel_content { height: 100% !important; width: 100% !important; box-shadow: none; }
+
+        /* --- Flawless Search Highlight Classes --- */
+        .highlight-match {
+            background-color: #fef08a !important; /* Tailwind Yellow 200 */
+            color: #000 !important;
+            font-weight: 600;
+        }
+        
+        html.dark .highlight-match {
+            background-color: #ca8a04 !important; /* Tailwind Yellow 600 */
+            color: #fff !important;
         }
 
-        /* --- Professional Dark Mode Theme --- */
-        html.dark .jexcel_container { background: #1e1e1e !important; border-color: #333 !important; }
-        html.dark .jexcel_content { background: #1e1e1e !important; }
+        /* --- Modern, Professional Dark Mode (Slate Palette) --- */
+        html.dark .main-workspace { background-color: #0f172a; }
+        html.dark .jexcel_container { background: #0f172a !important; border-color: #334155 !important; }
+        html.dark .jexcel_content { background: #0f172a !important; }
         
+        /* Grid Cells */
         html.dark .jexcel tbody tr td {
-            background-color: #1e1e1e !important;
-            color: #e0e0e0 !important;
-            border-bottom: 1px solid #333 !important;
-            border-right: 1px solid #333 !important;
+            background-color: #0f172a !important;
+            color: #e2e8f0 !important;
+            border-bottom: 1px solid #1e293b !important;
+            border-right: 1px solid #1e293b !important;
         }
-        html.dark .jexcel thead td {
-            background-color: #2a2a2a !important;
-            color: #bbb !important;
-            border-bottom: 1px solid #333 !important;
-            border-right: 1px solid #333 !important;
-        }
-        html.dark .jexcel tbody tr td.jexcel_row { background-color: #2a2a2a !important; color: #bbb !important; }
-        html.dark .jexcel tbody tr td.highlight { background-color: #0d47a1 !important; color: #fff !important; }
-        html.dark .jexcel tbody tr td.readonly { background-color: #222 !important; }
         
-        html.dark .jexcel_toolbar { background-color: #2a2a2a !important; border-color: #333 !important; }
-        html.dark .jexcel_toolbar i { color: #e0e0e0 !important; }
-        html.dark .jexcel_toolbar i:hover { background-color: #444 !important; }
-        html.dark .jsuites-search-root input { background: #1e1e1e !important; color: #e0e0e0 !important; border-color: #444 !important; }
-        html.dark .jexcel-filter { background: #2a2a2a !important; color: white !important; border-color: #333 !important;}
+        /* Grid Headers (A, B, C / 1, 2, 3) */
+        html.dark .jexcel thead td, 
+        html.dark .jexcel tbody tr td.jexcel_row {
+            background-color: #1e293b !important;
+            color: #94a3b8 !important;
+            border-bottom: 1px solid #334155 !important;
+            border-right: 1px solid #334155 !important;
+        }
+        
+        /* Selected Cell Focus */
+        html.dark .jexcel tbody tr td.highlight { background-color: #1d4ed8 !important; color: #fff !important; }
+        html.dark .jexcel tbody tr td.highlight-left { border-left: 1px solid #60a5fa !important; }
+        html.dark .jexcel tbody tr td.highlight-right { border-right: 1px solid #60a5fa !important; }
+        html.dark .jexcel tbody tr td.highlight-top { border-top: 1px solid #60a5fa !important; }
+        html.dark .jexcel tbody tr td.highlight-bottom { border-bottom: 1px solid #60a5fa !important; }
+        
+        /* Toolbars & Inputs */
+        html.dark .jexcel_toolbar { background-color: #1e293b !important; border-color: #334155 !important; }
+        html.dark .jexcel_toolbar i { color: #cbd5e1 !important; }
+        html.dark .jexcel_toolbar i:hover { background-color: #334155 !important; }
+        html.dark .jsuites-search-root input { background: #0f172a !important; color: #e2e8f0 !important; border: 1px solid #334155 !important; }
+        html.dark .jexcel-filter { background: #1e293b !important; color: white !important; border-color: #334155 !important;}
+        html.dark .jexcel_corner { background-color: #1e293b !important; border-right: 1px solid #334155 !important; border-bottom: 1px solid #334155 !important; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
 
     <div id="app-container">
         
-        <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between z-30 shadow-sm flex-none transition-colors duration-200 relative">
+        <nav class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-2 flex items-center justify-between z-30 shadow-sm flex-none relative">
             
             <div class="flex items-center space-x-4">
                 <div class="bg-green-600 p-2 rounded-lg shadow-sm text-white flex items-center justify-center">
                     <span class="material-icons text-xl">table_chart</span>
                 </div>
                 <div>
-                    <input type="text" id="doc-title" value="Untitled Spreadsheet" class="text-xl font-semibold text-gray-800 dark:text-gray-100 bg-transparent border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-green-500 focus:outline-none transition-colors px-1 py-0.5 w-64 lg:w-80" placeholder="Name your document..." />
+                    <input type="text" id="doc-title" value="Untitled Spreadsheet" class="text-xl font-semibold text-gray-800 dark:text-gray-100 bg-transparent border-b-2 border-transparent hover:border-gray-300 dark:hover:border-slate-500 focus:border-green-500 focus:outline-none px-1 py-0.5 w-64 lg:w-80" placeholder="Name your document..." />
                 </div>
             </div>
 
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2">
                 <input type="file" id="file-input" accept=".csv, .xlsx, .xls" class="hidden">
                 
-                <button id="btn-fullscreen" class="p-2 text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Toggle Fullscreen">
-                    <span class="material-icons text-sm">fullscreen</span>
-                </button>
-
-                <button id="btn-freeze" class="p-2 text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Freeze Top Row & First Column">
-                    <span class="material-icons text-sm">view_stream</span>
-                </button>
-
-                <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
-
-                <button id="btn-theme" class="p-2 text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors" title="Toggle Dark Mode">
+                <button id="btn-theme" class="p-2 text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md" title="Toggle Dark Mode">
                     <span class="material-icons text-sm" id="theme-icon">dark_mode</span>
                 </button>
 
-                <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+                <div class="w-px h-6 bg-gray-300 dark:bg-slate-600 mx-1"></div>
 
-                <button id="btn-new" class="text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                <button id="btn-new" class="text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-slate-700 px-3 py-1.5 rounded-md text-sm font-medium">
                     New File
                 </button>
                 
-                <button id="btn-upload" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 border border-gray-200 dark:border-gray-600 shadow-sm">
+                <button id="btn-upload" class="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 px-3 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1 border border-gray-200 dark:border-slate-600 shadow-sm">
                     <span class="material-icons text-sm">upload_file</span>
                     <span>Upload Data</span>
                 </button>
 
                 <div class="relative">
-                    <button id="btn-download-menu" class="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 shadow-md">
+                    <button id="btn-download-menu" class="bg-green-600 text-white hover:bg-green-700 px-4 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1 shadow-md">
                         <span class="material-icons text-sm">download</span>
                         <span>Download</span>
                         <span class="material-icons text-sm">expand_more</span>
                     </button>
                     
-                    <div id="dropdown-content" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50">
-                        <button id="export-csv" class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center transition-colors">
+                    <div id="dropdown-content" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-md shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden z-50">
+                        <button id="export-csv" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center">
                             <span class="material-icons text-sm mr-2 text-blue-500">description</span> Save as .CSV
                         </button>
-                        <button id="export-xlsx" class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center transition-colors">
+                        <button id="export-xlsx" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center">
                             <span class="material-icons text-sm mr-2 text-green-500">grid_on</span> Save as .XLSX
                         </button>
-                        <button id="export-pdf" class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center transition-colors">
+                        <button id="export-pdf" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center">
                             <span class="material-icons text-sm mr-2 text-red-500">picture_as_pdf</span> Export to PDF
                         </button>
                     </div>
@@ -147,11 +167,33 @@
             </div>
         </nav>
 
+        <div class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-1.5 flex items-center space-x-2 text-sm z-20">
+            <span class="text-gray-500 dark:text-gray-400 font-medium mr-2">Quick Tools:</span>
+            
+            <button id="btn-add-row" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center">
+                <span class="material-icons text-[16px] mr-1">add_row</span> Add Row
+            </button>
+            <button id="btn-add-col" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center">
+                <span class="material-icons text-[16px] mr-1">view_column</span> Add Col
+            </button>
+            <div class="w-px h-4 bg-gray-300 dark:bg-slate-600 mx-1"></div>
+            <button id="btn-freeze" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center">
+                <span class="material-icons text-[16px] mr-1">ac_unit</span> Freeze Panes
+            </button>
+            <button id="btn-fullscreen" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center">
+                <span class="material-icons text-[16px] mr-1">fullscreen</span> Fullscreen
+            </button>
+            <div class="w-px h-4 bg-gray-300 dark:bg-slate-600 mx-1"></div>
+            <button id="btn-clear" class="px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 rounded flex items-center">
+                <span class="material-icons text-[16px] mr-1">delete_sweep</span> Clear Data
+            </button>
+        </div>
+
         <main class="main-workspace">
             <div id="spreadsheet" class="w-full h-full"></div>
         </main>
 
-        <footer class="flex-none bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 text-center py-2 text-xs font-medium text-gray-500 dark:text-gray-400 z-10 transition-colors duration-200">
+        <footer class="flex-none bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 text-center py-2 text-xs font-medium text-gray-500 dark:text-gray-400 z-10">
             Developed by <span class="text-green-600 dark:text-green-500 font-bold tracking-wide">Revanth Reddy Abbati</span>
         </footer>
 
@@ -164,23 +206,22 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- Dropdown Menu Click Logic (Fixes Hover Glitches) ---
+            // --- Dropdown Logic ---
             const downloadBtn = document.getElementById('btn-download-menu');
             const dropdownContent = document.getElementById('dropdown-content');
 
             downloadBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent document click from immediately closing it
+                e.stopPropagation(); 
                 dropdownContent.classList.toggle('hidden');
             });
 
-            // Close dropdown if clicking anywhere else on the screen
             document.addEventListener('click', () => {
                 if (!dropdownContent.classList.contains('hidden')) {
                     dropdownContent.classList.add('hidden');
                 }
             });
 
-            // --- Advanced Spreadsheet Initialization ---
+            // --- Spreadsheet Initialization ---
             function initSpreadsheet(data = [[]]) {
                 const container = document.getElementById('spreadsheet');
                 container.innerHTML = ''; 
@@ -196,22 +237,19 @@
                     tableHeight: "100%",
                     wordWrap: true,
                     
-                    // FIXED: Dynamic Search Highlighting via updateTable hook
+                    // FIXED: Reliable CSS-Class Based Search Highlighting
                     updateTable: function(instance, cell, col, row, val, label, cellName) {
-                        // 1. Reset cell styles
-                        cell.style.backgroundColor = '';
-                        cell.style.color = '';
+                        // 1. Always remove the highlight class first to clean up
+                        cell.classList.remove('highlight-match');
                         
-                        // 2. Look for search input
-                        const searchInput = document.querySelector('.jexcel_search');
-                        if (searchInput && searchInput.value) {
-                            const query = searchInput.value.toLowerCase();
-                            
-                            // 3. If cell contains the search query, apply highlighting
-                            if (val !== null && val.toString().toLowerCase().includes(query)) {
-                                const isDark = document.documentElement.classList.contains('dark');
-                                cell.style.backgroundColor = isDark ? '#ca8a04' : '#fef08a'; // Dark Yellow / Light Yellow
-                                cell.style.color = isDark ? '#ffffff' : '#000000';
+                        // 2. Locate the search input dynamically
+                        const searchInput = instance.parentElement.querySelector('.jsuites-search-root input');
+                        const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                        
+                        // 3. Apply the class only if there is a match and a query exists
+                        if (query && val !== null && val !== undefined && val !== "") {
+                            if (val.toString().toLowerCase().includes(query)) {
+                                cell.classList.add('highlight-match');
                             }
                         }
                     },
@@ -241,11 +279,18 @@
             btnTheme.addEventListener('click', () => {
                 document.documentElement.classList.toggle('dark');
                 themeIcon.innerText = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
-                // Trigger grid refresh so highlights update to new theme colors
-                if(sheetInstance) sheetInstance.refresh();
             });
 
-            // --- Fullscreen Toggle ---
+            // --- Efficiency Tools Logic ---
+            document.getElementById('btn-add-row').addEventListener('click', () => sheetInstance.insertRow());
+            document.getElementById('btn-add-col').addEventListener('click', () => sheetInstance.insertColumn());
+            
+            document.getElementById('btn-clear').addEventListener('click', () => {
+                if(confirm("Are you sure you want to clear all data? This cannot be undone.")) {
+                    initSpreadsheet([[]]); 
+                }
+            });
+
             document.getElementById('btn-fullscreen').addEventListener('click', () => {
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen().catch(err => console.log(err));
@@ -254,7 +299,6 @@
                 }
             });
 
-            // --- Freeze Panes Toggle ---
             document.getElementById('btn-freeze').addEventListener('click', () => {
                 isFrozen = !isFrozen;
                 const config = sheetInstance.getConfig();
@@ -267,8 +311,8 @@
                 sheetInstance = jspreadsheet(document.getElementById('spreadsheet'), config);
                 sheetInstance.setData(currentData);
 
-                document.getElementById('btn-freeze').classList.toggle('bg-gray-200');
-                document.getElementById('btn-freeze').classList.toggle('dark:bg-gray-600');
+                document.getElementById('btn-freeze').classList.toggle('bg-green-100');
+                document.getElementById('btn-freeze').classList.toggle('dark:bg-slate-600');
             });
 
             // --- File Upload ---
@@ -300,7 +344,7 @@
                 e.target.value = ''; 
             });
 
-            // --- File Operations (New & Export) ---
+            // --- File Exports ---
             const getFileName = () => {
                 const val = docTitle.value.trim();
                 return val ? val : 'Untitled_Spreadsheet';
@@ -314,6 +358,7 @@
             });
 
             const exportData = (format) => {
+                dropdownContent.classList.add('hidden'); // Close menu on click
                 const headers = sheetInstance.getHeaders() ? sheetInstance.getHeaders().split(',') : [];
                 const data = sheetInstance.getData();
                 const finalData = [headers, ...data];
@@ -337,6 +382,7 @@
 
             document.getElementById('export-pdf').addEventListener('click', (e) => {
                 e.preventDefault();
+                dropdownContent.classList.add('hidden'); // Close menu on click
                 const doc = new jsPDF({ orientation: "landscape" });
                 doc.text(getFileName(), 14, 15);
                 
