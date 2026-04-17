@@ -52,10 +52,9 @@
             flex-grow: 1;
             position: relative;
             overflow: hidden;
-            background-color: #f8fafc; /* Light mode bg */
+            background-color: #f8fafc;
         }
         
-        /* Smooth transitions for theme switching */
         * { transition: background-color 0.15s ease, border-color 0.15s ease; }
 
         /* --- Custom Jspreadsheet Adjustments --- */
@@ -64,13 +63,13 @@
 
         /* --- Flawless Search Highlight Classes --- */
         .highlight-match {
-            background-color: #fef08a !important; /* Tailwind Yellow 200 */
+            background-color: #fef08a !important; 
             color: #000 !important;
             font-weight: 600;
         }
         
         html.dark .highlight-match {
-            background-color: #ca8a04 !important; /* Tailwind Yellow 600 */
+            background-color: #ca8a04 !important; 
             color: #fff !important;
         }
 
@@ -79,7 +78,6 @@
         html.dark .jexcel_container { background: #0f172a !important; border-color: #334155 !important; }
         html.dark .jexcel_content { background: #0f172a !important; }
         
-        /* Grid Cells */
         html.dark .jexcel tbody tr td {
             background-color: #0f172a !important;
             color: #e2e8f0 !important;
@@ -87,7 +85,6 @@
             border-right: 1px solid #1e293b !important;
         }
         
-        /* Grid Headers (A, B, C / 1, 2, 3) */
         html.dark .jexcel thead td, 
         html.dark .jexcel tbody tr td.jexcel_row {
             background-color: #1e293b !important;
@@ -96,23 +93,40 @@
             border-right: 1px solid #334155 !important;
         }
         
-        /* Selected Cell Focus */
         html.dark .jexcel tbody tr td.highlight { background-color: #1d4ed8 !important; color: #fff !important; }
         html.dark .jexcel tbody tr td.highlight-left { border-left: 1px solid #60a5fa !important; }
         html.dark .jexcel tbody tr td.highlight-right { border-right: 1px solid #60a5fa !important; }
         html.dark .jexcel tbody tr td.highlight-top { border-top: 1px solid #60a5fa !important; }
         html.dark .jexcel tbody tr td.highlight-bottom { border-bottom: 1px solid #60a5fa !important; }
         
-        /* Toolbars & Inputs */
         html.dark .jexcel_toolbar { background-color: #1e293b !important; border-color: #334155 !important; }
         html.dark .jexcel_toolbar i { color: #cbd5e1 !important; }
         html.dark .jexcel_toolbar i:hover { background-color: #334155 !important; }
         html.dark .jsuites-search-root input { background: #0f172a !important; color: #e2e8f0 !important; border: 1px solid #334155 !important; }
         html.dark .jexcel-filter { background: #1e293b !important; color: white !important; border-color: #334155 !important;}
         html.dark .jexcel_corner { background-color: #1e293b !important; border-right: 1px solid #334155 !important; border-bottom: 1px solid #334155 !important; }
+
+        /* Spinner Animation */
+        .loader {
+            border-top-color: #16a34a;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-slate-800 px-8 py-6 rounded-xl shadow-2xl flex flex-col items-center">
+            <div class="loader ease-linear rounded-full border-4 border-gray-200 dark:border-slate-600 h-12 w-12 mb-4"></div>
+            <h2 class="text-center text-gray-800 dark:text-gray-100 text-lg font-semibold">Processing Data...</h2>
+            <p class="text-center text-gray-500 dark:text-gray-400 text-sm mt-1">Large files may take a few seconds.</p>
+        </div>
+    </div>
 
     <div id="app-container">
         
@@ -206,6 +220,8 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             
+            const overlay = document.getElementById('loading-overlay');
+
             // --- Dropdown Logic ---
             const downloadBtn = document.getElementById('btn-download-menu');
             const dropdownContent = document.getElementById('dropdown-content');
@@ -236,17 +252,13 @@
                     tableWidth: "100%",
                     tableHeight: "100%",
                     wordWrap: true,
+                    lazyLoading: true, // <--- PREVENTS BROWSER CRASH ON LARGE FILES
                     
-                    // FIXED: Reliable CSS-Class Based Search Highlighting
                     updateTable: function(instance, cell, col, row, val, label, cellName) {
-                        // 1. Always remove the highlight class first to clean up
                         cell.classList.remove('highlight-match');
-                        
-                        // 2. Locate the search input dynamically
                         const searchInput = instance.parentElement.querySelector('.jsuites-search-root input');
                         const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
                         
-                        // 3. Apply the class only if there is a match and a query exists
                         if (query && val !== null && val !== undefined && val !== "") {
                             if (val.toString().toLowerCase().includes(query)) {
                                 cell.classList.add('highlight-match');
@@ -315,7 +327,7 @@
                 document.getElementById('btn-freeze').classList.toggle('dark:bg-slate-600');
             });
 
-            // --- File Upload ---
+            // --- Async File Upload (Prevents UI Freezing) ---
             const fileInput = document.getElementById('file-input');
             const docTitle = document.getElementById('doc-title');
 
@@ -326,22 +338,39 @@
                 if (!file) return;
 
                 docTitle.value = file.name.split('.')[0];
-                const reader = new FileReader();
-                
-                reader.onload = (event) => {
-                    const workbook = XLSX.read(event.target.result, { type: 'binary', cellDates: true });
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rawData = XLSX.utils.sheet_to_json(worksheet, { 
-                        header: 1, 
-                        defval: "", 
-                        raw: false, 
-                        dateNF: 'yyyy-mm-dd hh:mm:ss' 
-                    });
+                overlay.classList.remove('hidden'); // Show loading spinner
+
+                // Use setTimeout to allow the browser to paint the spinner before heavy processing
+                setTimeout(() => {
+                    const reader = new FileReader();
                     
-                    if(rawData.length > 0) initSpreadsheet(rawData);
-                };
-                reader.readAsBinaryString(file);
-                e.target.value = ''; 
+                    reader.onload = (event) => {
+                        try {
+                            const workbook = XLSX.read(event.target.result, { type: 'binary', cellDates: true });
+                            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const rawData = XLSX.utils.sheet_to_json(worksheet, { 
+                                header: 1, 
+                                defval: "", 
+                                raw: false, 
+                                dateNF: 'yyyy-mm-dd hh:mm:ss' 
+                            });
+                            
+                            if(rawData.length > 0) {
+                                initSpreadsheet(rawData);
+                            } else {
+                                alert("File appears to be empty.");
+                            }
+                        } catch (error) {
+                            alert("Error parsing file. Please check the file format.");
+                            console.error(error);
+                        } finally {
+                            overlay.classList.add('hidden'); // Hide spinner when done
+                        }
+                    };
+                    
+                    reader.readAsBinaryString(file);
+                    e.target.value = ''; 
+                }, 50); // 50ms delay
             });
 
             // --- File Exports ---
