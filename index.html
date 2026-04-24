@@ -12,11 +12,7 @@
             theme: { 
                 extend: {
                     colors: {
-                        slate: {
-                            700: '#334155',
-                            800: '#1e293b',
-                            900: '#0f172a',
-                        }
+                        slate: { 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
                     }
                 } 
             }
@@ -31,91 +27,71 @@
     <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
 
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
+            margin: 0; padding: 0; overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        #app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .main-workspace {
-            flex-grow: 1;
-            position: relative;
-            overflow: hidden;
-            background-color: #f8fafc;
-        }
-        
+        #app-container { display: flex; flex-direction: column; height: 100vh; }
+        .main-workspace { flex-grow: 1; position: relative; overflow: hidden; background-color: #f8fafc; }
         * { transition: background-color 0.15s ease, border-color 0.15s ease; }
 
-        /* --- Custom Jspreadsheet Adjustments --- */
+        /* Jspreadsheet Constraints */
         .jexcel_container { width: 100% !important; height: 100% !important; border: none !important; }
         .jexcel_content { height: 100% !important; width: 100% !important; box-shadow: none; }
 
-        /* --- Flawless Search Highlight Classes --- */
-        .highlight-match {
-            background-color: #fef08a !important; 
-            color: #000 !important;
-            font-weight: 600;
+        /* --- Swap Cursors --- */
+        .jexcel thead td, 
+        .jexcel tbody tr td.jexcel_row {
+            cursor: pointer !important;
+            transition: background-color 0.2s;
         }
-        
-        html.dark .highlight-match {
-            background-color: #ca8a04 !important; 
-            color: #fff !important;
+        .jexcel thead td:hover, 
+        .jexcel tbody tr td.jexcel_row:hover {
+            background-color: #e2e8f0 !important; /* Visual feedback on hover */
+        }
+        html.dark .jexcel thead td:hover, 
+        html.dark .jexcel tbody tr td.jexcel_row:hover {
+            background-color: #475569 !important;
         }
 
-        /* --- Modern, Professional Dark Mode (Slate Palette) --- */
+        /* --- Dynamic Highlight Classes --- */
+        .highlight-match { background-color: #fef08a !important; color: #000 !important; font-weight: 600; }
+        html.dark .highlight-match { background-color: #ca8a04 !important; color: #fff !important; }
+        
+        .highlight-limit { background-color: #fca5a5 !important; color: #7f1d1d !important; font-weight: 600; }
+        html.dark .highlight-limit { background-color: #991b1b !important; color: #fecaca !important; }
+
+        /* --- Dark Mode Palette --- */
         html.dark .main-workspace { background-color: #0f172a; }
         html.dark .jexcel_container { background: #0f172a !important; border-color: #334155 !important; }
         html.dark .jexcel_content { background: #0f172a !important; }
-        
-        html.dark .jexcel tbody tr td {
-            background-color: #0f172a !important;
-            color: #e2e8f0 !important;
-            border-bottom: 1px solid #1e293b !important;
-            border-right: 1px solid #1e293b !important;
-        }
-        
-        html.dark .jexcel thead td, 
-        html.dark .jexcel tbody tr td.jexcel_row {
-            background-color: #1e293b !important;
-            color: #94a3b8 !important;
-            border-bottom: 1px solid #334155 !important;
-            border-right: 1px solid #334155 !important;
-        }
-        
+        html.dark .jexcel tbody tr td { background-color: #0f172a !important; color: #e2e8f0 !important; border-bottom: 1px solid #1e293b !important; border-right: 1px solid #1e293b !important; }
+        html.dark .jexcel thead td, html.dark .jexcel tbody tr td.jexcel_row { background-color: #1e293b !important; color: #94a3b8 !important; border-bottom: 1px solid #334155 !important; border-right: 1px solid #334155 !important; }
         html.dark .jexcel tbody tr td.highlight { background-color: #1d4ed8 !important; color: #fff !important; }
-        html.dark .jexcel tbody tr td.highlight-left { border-left: 1px solid #60a5fa !important; }
-        html.dark .jexcel tbody tr td.highlight-right { border-right: 1px solid #60a5fa !important; }
-        html.dark .jexcel tbody tr td.highlight-top { border-top: 1px solid #60a5fa !important; }
-        html.dark .jexcel tbody tr td.highlight-bottom { border-bottom: 1px solid #60a5fa !important; }
-        
         html.dark .jexcel_toolbar { background-color: #1e293b !important; border-color: #334155 !important; }
         html.dark .jexcel_toolbar i { color: #cbd5e1 !important; }
         html.dark .jexcel_toolbar i:hover { background-color: #334155 !important; }
         html.dark .jsuites-search-root input { background: #0f172a !important; color: #e2e8f0 !important; border: 1px solid #334155 !important; }
         html.dark .jexcel-filter { background: #1e293b !important; color: white !important; border-color: #334155 !important;}
         html.dark .jexcel_corner { background-color: #1e293b !important; border-right: 1px solid #334155 !important; border-bottom: 1px solid #334155 !important; }
+        html.dark .jexcel_pagination { background: #1e293b !important; color: #cbd5e1 !important; border-top: 1px solid #334155 !important; }
+        html.dark .jexcel_pagination > div > div { background-color: #0f172a; border-color: #334155; color: #e2e8f0; }
 
-        /* Spinner Animation */
-        .loader {
-            border-top-color: #16a34a;
-            -webkit-animation: spinner 1.5s linear infinite;
-            animation: spinner 1.5s linear infinite;
-        }
-        @keyframes spinner {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        /* Toolbar Scrollbar */
+        .tools-scrollbar::-webkit-scrollbar { height: 6px; }
+        .tools-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .tools-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        html.dark .tools-scrollbar::-webkit-scrollbar-thumb { background-color: #475569; }
+
+        /* Spinner */
+        .loader { border-top-color: #16a34a; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
@@ -123,83 +99,91 @@
     <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity">
         <div class="bg-white dark:bg-slate-800 px-8 py-6 rounded-xl shadow-2xl flex flex-col items-center">
             <div class="loader ease-linear rounded-full border-4 border-gray-200 dark:border-slate-600 h-12 w-12 mb-4"></div>
-            <h2 class="text-center text-gray-800 dark:text-gray-100 text-lg font-semibold">Processing Data...</h2>
-            <p class="text-center text-gray-500 dark:text-gray-400 text-sm mt-1">Large files may take a few seconds.</p>
+            <h2 class="text-center text-gray-800 dark:text-gray-100 text-lg font-semibold">Processing File...</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center max-w-xs">Large files take a moment to format safely.</p>
         </div>
     </div>
 
     <div id="app-container">
         
         <nav class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-2 flex items-center justify-between z-30 shadow-sm flex-none relative">
-            
             <div class="flex items-center space-x-4">
                 <div class="bg-green-600 p-2 rounded-lg shadow-sm text-white flex items-center justify-center">
                     <span class="material-icons text-xl">table_chart</span>
                 </div>
                 <div>
-                    <input type="text" id="doc-title" value="Untitled Spreadsheet" class="text-xl font-semibold text-gray-800 dark:text-gray-100 bg-transparent border-b-2 border-transparent hover:border-gray-300 dark:hover:border-slate-500 focus:border-green-500 focus:outline-none px-1 py-0.5 w-64 lg:w-80" placeholder="Name your document..." />
+                    <input type="text" id="doc-title" value="Untitled Spreadsheet" class="text-xl font-semibold text-gray-800 dark:text-gray-100 bg-transparent border-b-2 border-transparent hover:border-gray-300 dark:hover:border-slate-500 focus:border-green-500 focus:outline-none px-1 py-0.5 w-48 lg:w-80" placeholder="Name your document..." />
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-2 flex-nowrap">
                 <input type="file" id="file-input" accept=".csv, .xlsx, .xls" class="hidden">
-                
                 <button id="btn-theme" class="p-2 text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md" title="Toggle Dark Mode">
                     <span class="material-icons text-sm" id="theme-icon">dark_mode</span>
                 </button>
-
                 <div class="w-px h-6 bg-gray-300 dark:bg-slate-600 mx-1"></div>
-
-                <button id="btn-new" class="text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-slate-700 px-3 py-1.5 rounded-md text-sm font-medium">
+                
+                <button id="btn-new" class="text-gray-600 dark:text-gray-300 hover:text-green-600 hover:bg-green-50 dark:hover:bg-slate-700 px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap">
                     New File
                 </button>
-                
-                <button id="btn-upload" class="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 px-3 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1 border border-gray-200 dark:border-slate-600 shadow-sm">
+                <button id="btn-upload" class="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 px-3 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1 border border-gray-200 dark:border-slate-600 shadow-sm whitespace-nowrap">
                     <span class="material-icons text-sm">upload_file</span>
-                    <span>Upload Data</span>
+                    <span class="hidden sm:inline">Upload Data</span>
                 </button>
 
                 <div class="relative">
-                    <button id="btn-download-menu" class="bg-green-600 text-white hover:bg-green-700 px-4 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1 shadow-md">
+                    <button id="btn-download-menu" class="bg-green-600 text-white hover:bg-green-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1 shadow-md whitespace-nowrap">
                         <span class="material-icons text-sm">download</span>
-                        <span>Download</span>
+                        <span class="hidden sm:inline">Download</span>
                         <span class="material-icons text-sm">expand_more</span>
                     </button>
-                    
                     <div id="dropdown-content" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-md shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden z-50">
-                        <button id="export-csv" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center">
-                            <span class="material-icons text-sm mr-2 text-blue-500">description</span> Save as .CSV
-                        </button>
-                        <button id="export-xlsx" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center">
-                            <span class="material-icons text-sm mr-2 text-green-500">grid_on</span> Save as .XLSX
-                        </button>
-                        <button id="export-pdf" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center">
-                            <span class="material-icons text-sm mr-2 text-red-500">picture_as_pdf</span> Export to PDF
-                        </button>
+                        <button id="export-csv" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center"><span class="material-icons text-sm mr-2 text-blue-500">description</span> Save as .CSV</button>
+                        <button id="export-xlsx" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center"><span class="material-icons text-sm mr-2 text-green-500">grid_on</span> Save as .XLSX</button>
+                        <button id="export-pdf" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center"><span class="material-icons text-sm mr-2 text-red-500">picture_as_pdf</span> Export to PDF</button>
                     </div>
                 </div>
             </div>
         </nav>
 
-        <div class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-1.5 flex items-center space-x-2 text-sm z-20">
-            <span class="text-gray-500 dark:text-gray-400 font-medium mr-2">Quick Tools:</span>
+        <div class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-2 flex items-center gap-3 text-sm z-20 overflow-x-auto tools-scrollbar w-full">
+            <span class="text-gray-500 dark:text-gray-400 font-medium flex-shrink-0 whitespace-nowrap">Quick Tools:</span>
             
-            <button id="btn-add-row" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center">
+            <button id="btn-add-row" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap" title="Click a cell, then insert row after it">
                 <span class="material-icons text-[16px] mr-1">add_row</span> Add Row
             </button>
-            <button id="btn-add-col" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center">
+            <button id="btn-add-col" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap" title="Click a cell, then insert column after it">
                 <span class="material-icons text-[16px] mr-1">view_column</span> Add Col
             </button>
-            <div class="w-px h-4 bg-gray-300 dark:bg-slate-600 mx-1"></div>
-            <button id="btn-freeze" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center">
+            
+            <div class="w-px h-5 bg-gray-300 dark:bg-slate-600 flex-shrink-0"></div>
+            
+            <div class="flex items-center space-x-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-2 py-1 rounded flex-shrink-0">
+                <span class="text-gray-500 dark:text-gray-400 text-xs font-medium">Char Limit:</span>
+                <input type="number" id="char-limit-input" placeholder="0" class="w-16 px-1.5 py-0.5 text-xs border border-gray-300 rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:border-orange-500">
+                <button id="btn-highlight-limit" class="px-2 py-0.5 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-slate-700 rounded flex items-center text-xs whitespace-nowrap" title="Highlight cells over limit">
+                    <span class="material-icons text-[14px] mr-1">rule</span> Check
+                </button>
+                <button id="btn-clear-highlight" class="px-1 py-0.5 text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-gray-200 dark:hover:bg-slate-700 rounded flex items-center" title="Clear Limit Highlights">
+                    <span class="material-icons text-[14px]">clear</span>
+                </button>
+            </div>
+
+            <div class="w-px h-5 bg-gray-300 dark:bg-slate-600 flex-shrink-0"></div>
+            
+            <button id="btn-freeze" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap">
                 <span class="material-icons text-[16px] mr-1">ac_unit</span> Freeze Panes
             </button>
-            <button id="btn-fullscreen" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center">
+            <button id="btn-fullscreen" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap">
                 <span class="material-icons text-[16px] mr-1">fullscreen</span> Fullscreen
             </button>
-            <div class="w-px h-4 bg-gray-300 dark:bg-slate-600 mx-1"></div>
-            <button id="btn-clear" class="px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 rounded flex items-center">
-                <span class="material-icons text-[16px] mr-1">delete_sweep</span> Clear Data
+            
+            <div class="w-px h-5 bg-gray-300 dark:bg-slate-600 flex-shrink-0"></div>
+            
+            <span class="text-blue-500 dark:text-blue-400 italic text-xs flex-shrink-0 mr-2">Tip: Double-click Headers (A, B, 1, 2) to Swap</span>
+
+            <button id="btn-clear" class="px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap ml-auto">
+                <span class="material-icons text-[16px] mr-1">delete_sweep</span> Clear Grid
             </button>
         </div>
 
@@ -217,32 +201,90 @@
         window.jsPDF = window.jspdf.jsPDF;
         let sheetInstance = null;
         let isFrozen = false;
+        
+        // Memory trackers
+        let lastSelectedRow = null;
+        let lastSelectedCol = null;
+        let currentSearchQuery = "";
 
         document.addEventListener('DOMContentLoaded', () => {
             
             const overlay = document.getElementById('loading-overlay');
-
-            // --- Dropdown Logic ---
-            const downloadBtn = document.getElementById('btn-download-menu');
             const dropdownContent = document.getElementById('dropdown-content');
 
-            downloadBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                dropdownContent.classList.toggle('hidden');
+            // --- Dropdown Engine ---
+            document.getElementById('btn-download-menu').addEventListener('click', (e) => {
+                e.stopPropagation(); dropdownContent.classList.toggle('hidden');
             });
+            document.addEventListener('click', () => dropdownContent.classList.add('hidden'));
 
-            document.addEventListener('click', () => {
-                if (!dropdownContent.classList.contains('hidden')) {
-                    dropdownContent.classList.add('hidden');
+            // --- Custom Swap Engine ---
+            // Listens for double clicks on Headers to initiate a perfectly clean data swap
+            document.getElementById('spreadsheet').addEventListener('dblclick', function(e) {
+                // 1. Column Swap (Double clicked A, B, C...)
+                if (e.target.tagName === 'TD' && e.target.closest('thead')) {
+                    let colIndex = e.target.getAttribute('data-x');
+                    if (colIndex !== null) {
+                        let colLetter = jspreadsheet.helpers.getColumnName(colIndex);
+                        let targetLetter = prompt(`SWAP COLUMN:\n\nYou double-clicked Column ${colLetter}.\nEnter the letter of the column you want to swap it with (e.g., A, B, C):`);
+                        
+                        if (targetLetter) {
+                            let targetIndex = jspreadsheet.helpers.getIdFromColumnName(targetLetter.toUpperCase(), true);
+                            if (targetIndex !== null && targetIndex >= 0 && targetIndex !== parseInt(colIndex)) {
+                                swapColumns(parseInt(colIndex), targetIndex);
+                            }
+                        }
+                    }
+                }
+                // 2. Row Swap (Double clicked 1, 2, 3...)
+                else if (e.target.tagName === 'TD' && e.target.classList.contains('jexcel_row')) {
+                    let rowIndex = e.target.parentElement.getAttribute('data-y');
+                    if (rowIndex !== null) {
+                        let displayRow = parseInt(rowIndex) + 1;
+                        let targetRow = prompt(`SWAP ROW:\n\nYou double-clicked Row ${displayRow}.\nEnter the row number you want to swap it with:`);
+                        
+                        if (targetRow) {
+                            let tIndex = parseInt(targetRow) - 1;
+                            if (!isNaN(tIndex) && tIndex >= 0 && tIndex !== parseInt(rowIndex)) {
+                                swapRows(parseInt(rowIndex), tIndex);
+                            }
+                        }
+                    }
                 }
             });
 
-            // --- Spreadsheet Initialization ---
-            function initSpreadsheet(data = [[]]) {
-                const container = document.getElementById('spreadsheet');
-                container.innerHTML = ''; 
+            function swapColumns(col1, col2) {
+                let data = sheetInstance.getData();
+                let maxCol = Math.max(col1, col2);
+                
+                for(let i = 0; i < data.length; i++) {
+                    while(data[i].length <= maxCol) data[i].push(""); // Pad array if needed
+                    let temp = data[i][col1];
+                    data[i][col1] = data[i][col2];
+                    data[i][col2] = temp;
+                }
+                sheetInstance.setData(data); // Injects cleanly without breaking headers
+            }
 
-                sheetInstance = jspreadsheet(container, {
+            function swapRows(row1, row2) {
+                let data = sheetInstance.getData();
+                let maxRow = Math.max(row1, row2);
+                
+                while(data.length <= maxRow) {
+                    data.push(new Array(data[0].length).fill("")); // Pad rows if needed
+                }
+                
+                let temp = data[row1];
+                data[row1] = data[row2];
+                data[row2] = temp;
+                sheetInstance.setData(data);
+            }
+
+            // --- Jspreadsheet Core Engine ---
+            function renderGrid(data) {
+                if (sheetInstance) sheetInstance.destroy();
+                
+                sheetInstance = jspreadsheet(document.getElementById('spreadsheet'), {
                     data: data,
                     minDimensions: [26, 100],
                     defaultColWidth: 100,
@@ -252,15 +294,27 @@
                     tableWidth: "100%",
                     tableHeight: "100%",
                     wordWrap: true,
-                    lazyLoading: true, // <--- PREVENTS BROWSER CRASH ON LARGE FILES
                     
+                    pagination: 100,
+                    paginationOptions: [50, 100, 250, 500, 1000],
+                    
+                    // DISABLED Native dragging because it breaks label indexing. Handled by Double Click Swap.
+                    columnDrag: false, 
+                    rowDrag: false,
+                    
+                    onselection: function(instance, x1, y1, x2, y2) {
+                        lastSelectedCol = Math.max(parseInt(x1), parseInt(x2));
+                        lastSelectedRow = Math.max(parseInt(y1), parseInt(y2));
+                    },
+
+                    onsearch: function(el, obj, query) {
+                        currentSearchQuery = query ? query.toLowerCase() : "";
+                    },
+
                     updateTable: function(instance, cell, col, row, val, label, cellName) {
                         cell.classList.remove('highlight-match');
-                        const searchInput = instance.parentElement.querySelector('.jsuites-search-root input');
-                        const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-                        
-                        if (query && val !== null && val !== undefined && val !== "") {
-                            if (val.toString().toLowerCase().includes(query)) {
+                        if (currentSearchQuery && val !== null && val !== undefined && val !== "") {
+                            if (val.toString().toLowerCase().includes(currentSearchQuery)) {
                                 cell.classList.add('highlight-match');
                             }
                         }
@@ -282,52 +336,69 @@
                 });
             }
 
-            initSpreadsheet();
+            renderGrid([[]]);
 
-            // --- Theme Toggle ---
+            // --- Theme Toggler ---
             const btnTheme = document.getElementById('btn-theme');
             const themeIcon = document.getElementById('theme-icon');
-            
             btnTheme.addEventListener('click', () => {
                 document.documentElement.classList.toggle('dark');
                 themeIcon.innerText = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
             });
 
-            // --- Efficiency Tools Logic ---
-            document.getElementById('btn-add-row').addEventListener('click', () => sheetInstance.insertRow());
-            document.getElementById('btn-add-col').addEventListener('click', () => sheetInstance.insertColumn());
-            
-            document.getElementById('btn-clear').addEventListener('click', () => {
-                if(confirm("Are you sure you want to clear all data? This cannot be undone.")) {
-                    initSpreadsheet([[]]); 
-                }
+            // --- Context-Aware Insertions ---
+            document.getElementById('btn-add-row').addEventListener('click', () => {
+                if (lastSelectedRow !== null) sheetInstance.insertRow(1, parseInt(lastSelectedRow), false);
+                else sheetInstance.insertRow(); 
             });
 
+            document.getElementById('btn-add-col').addEventListener('click', () => {
+                if (lastSelectedCol !== null) sheetInstance.insertColumn(1, parseInt(lastSelectedCol), false);
+                else sheetInstance.insertColumn(); 
+            });
+
+            // --- Character Limit Logic ---
+            const btnHighlightLimit = document.getElementById('btn-highlight-limit');
+            const btnClearHighlight = document.getElementById('btn-clear-highlight');
+            const charLimitInput = document.getElementById('char-limit-input');
+
+            const clearLimits = () => document.querySelectorAll('.highlight-limit').forEach(c => c.classList.remove('highlight-limit'));
+
+            btnHighlightLimit.addEventListener('click', () => {
+                clearLimits(); 
+                const limit = parseInt(charLimitInput.value);
+                if (isNaN(limit) || limit < 1) return alert("Enter a valid number for limit check.");
+                
+                document.querySelectorAll('tbody td[data-x]').forEach(cell => {
+                    const text = cell.innerText || "";
+                    if (text.length > limit) cell.classList.add('highlight-limit');
+                });
+            });
+
+            btnClearHighlight.addEventListener('click', () => { charLimitInput.value = ''; clearLimits(); });
+
+            // --- Window Toggles ---
+            document.getElementById('btn-clear').addEventListener('click', () => { if(confirm("Discard all data?")) renderGrid([[]]); });
+            
             document.getElementById('btn-fullscreen').addEventListener('click', () => {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(err => console.log(err));
-                } else {
-                    document.exitFullscreen();
-                }
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.log(err));
+                else document.exitFullscreen();
             });
 
             document.getElementById('btn-freeze').addEventListener('click', () => {
                 isFrozen = !isFrozen;
                 const config = sheetInstance.getConfig();
                 const currentData = sheetInstance.getData();
-                
                 config.freezeColumns = isFrozen ? 1 : 0;
                 config.freezeRows = isFrozen ? 1 : 0;
-                
-                document.getElementById('spreadsheet').innerHTML = '';
-                sheetInstance = jspreadsheet(document.getElementById('spreadsheet'), config);
-                sheetInstance.setData(currentData);
-
+                sheetInstance.destroy();
+                sheetInstance = null;
+                renderGrid(currentData);
                 document.getElementById('btn-freeze').classList.toggle('bg-green-100');
                 document.getElementById('btn-freeze').classList.toggle('dark:bg-slate-600');
             });
 
-            // --- Async File Upload (Prevents UI Freezing) ---
+            // --- Smart Hybrid Uploader ---
             const fileInput = document.getElementById('file-input');
             const docTitle = document.getElementById('doc-title');
 
@@ -338,90 +409,58 @@
                 if (!file) return;
 
                 docTitle.value = file.name.split('.')[0];
-                overlay.classList.remove('hidden'); // Show loading spinner
+                const fileExt = file.name.split('.').pop().toLowerCase();
 
-                // Use setTimeout to allow the browser to paint the spinner before heavy processing
-                setTimeout(() => {
-                    const reader = new FileReader();
-                    
-                    reader.onload = (event) => {
-                        try {
-                            const workbook = XLSX.read(event.target.result, { type: 'binary', cellDates: true });
-                            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                            const rawData = XLSX.utils.sheet_to_json(worksheet, { 
-                                header: 1, 
-                                defval: "", 
-                                raw: false, 
-                                dateNF: 'yyyy-mm-dd hh:mm:ss' 
-                            });
-                            
-                            if(rawData.length > 0) {
-                                initSpreadsheet(rawData);
-                            } else {
-                                alert("File appears to be empty.");
-                            }
-                        } catch (error) {
-                            alert("Error parsing file. Please check the file format.");
-                            console.error(error);
-                        } finally {
-                            overlay.classList.add('hidden'); // Hide spinner when done
-                        }
-                    };
-                    
-                    reader.readAsBinaryString(file);
-                    e.target.value = ''; 
-                }, 50); // 50ms delay
+                if (fileExt === 'csv') {
+                    Papa.parse(file, { skipEmptyLines: true, complete: function(results) { renderGrid(results.data); } });
+                } else {
+                    overlay.classList.remove('hidden'); 
+                    requestAnimationFrame(() => requestAnimationFrame(() => {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            try {
+                                const workbook = XLSX.read(event.target.result, { type: 'binary', cellDates: true });
+                                const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { 
+                                    header: 1, defval: "", raw: false, dateNF: 'yyyy-mm-dd hh:mm:ss' 
+                                });
+                                if(rawData.length > 0) renderGrid(rawData);
+                            } catch (error) { alert("Error parsing Excel file."); } 
+                            finally { overlay.classList.add('hidden'); }
+                        };
+                        reader.readAsBinaryString(file);
+                    }));
+                }
+                e.target.value = ''; 
             });
 
-            // --- File Exports ---
-            const getFileName = () => {
-                const val = docTitle.value.trim();
-                return val ? val : 'Untitled_Spreadsheet';
-            };
+            // --- Unified Export System ---
+            const getFileName = () => docTitle.value.trim() || 'Untitled_Spreadsheet';
 
             document.getElementById('btn-new').addEventListener('click', () => {
-                if(confirm("Are you sure? Unsaved changes will be lost.")) {
+                if(confirm("Discard unsaved changes?")) {
                     docTitle.value = "Untitled Spreadsheet";
-                    initSpreadsheet();
+                    renderGrid([[]]);
                 }
             });
 
             const exportData = (format) => {
-                dropdownContent.classList.add('hidden'); // Close menu on click
-                const headers = sheetInstance.getHeaders() ? sheetInstance.getHeaders().split(',') : [];
-                const data = sheetInstance.getData();
-                const finalData = [headers, ...data];
-                
-                const worksheet = XLSX.utils.aoa_to_sheet(finalData);
+                dropdownContent.classList.add('hidden'); 
+                const finalData = [(sheetInstance.getHeaders() || "").split(','), ...sheetInstance.getData()];
                 const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-                
+                XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(finalData), "Sheet1");
                 XLSX.writeFile(workbook, `${getFileName()}.${format}`);
             };
 
-            document.getElementById('export-csv').addEventListener('click', (e) => {
-                e.preventDefault();
-                exportData('csv');
-            });
-
-            document.getElementById('export-xlsx').addEventListener('click', (e) => {
-                e.preventDefault();
-                exportData('xlsx');
-            });
-
+            document.getElementById('export-csv').addEventListener('click', (e) => { e.preventDefault(); exportData('csv'); });
+            document.getElementById('export-xlsx').addEventListener('click', (e) => { e.preventDefault(); exportData('xlsx'); });
+            
             document.getElementById('export-pdf').addEventListener('click', (e) => {
-                e.preventDefault();
-                dropdownContent.classList.add('hidden'); // Close menu on click
+                e.preventDefault(); dropdownContent.classList.add('hidden'); 
                 const doc = new jsPDF({ orientation: "landscape" });
                 doc.text(getFileName(), 14, 15);
-                
-                const headers = sheetInstance.getHeaders() ? sheetInstance.getHeaders().split(',') : [];
                 doc.autoTable({
-                    head: [headers],
-                    body: sheetInstance.getData(),
-                    startY: 20,
-                    theme: document.documentElement.classList.contains('dark') ? 'grid' : 'striped',
-                    styles: { fontSize: 8 }
+                    head: [(sheetInstance.getHeaders() || "").split(',')], body: sheetInstance.getData(),
+                    startY: 20, theme: document.documentElement.classList.contains('dark') ? 'grid' : 'striped', styles: { fontSize: 8 }
                 });
                 doc.save(`${getFileName()}.pdf`);
             });
