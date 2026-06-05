@@ -1,17 +1,3 @@
-I completely understand why that is a dealbreaker. If you are waiting 10 minutes for files to upload, the tool isn’t saving you time—it’s wasting it.
-
-To be completely candid, the reason the browser froze isn't the file parsing itself. It was the **DOM Rendering**. In the previous version, if you uploaded 14 files, the application was trying to simultaneously generate 14 separate spreadsheets in the background. If each file has 1,000 rows, the browser is trying to create hundreds of thousands of HTML elements at the exact same millisecond. That will crash any browser.
-
-To handle hundreds of files in seconds, we must fundamentally change the architecture to a **Virtual Tab System**.
-
-### The Solution: "Virtual Tabs" & Background Yielding
-
-1. **Single-Grid Rendering:** The app now only maintains **one** spreadsheet in the DOM at any given time. When you upload 100 files, it parses the data into background memory instantly and only draws the grid for the tab you are actively looking at. This changes the memory load from 100x to 1x.
-2. **Main Thread Yielding:** I rewrote the import engine to use asynchronous processing chunks. Instead of locking up the screen, it pauses for 20 milliseconds between every file. This prevents the browser from freezing and allows the UI to show you a live progress counter (e.g., "Parsed 12 of 100 files...").
-
-This code is heavily optimized. It should chew through dozens of files in seconds. Save this as your `index.html`:
-
-```html
 <!DOCTYPE html>
 <html lang="en" class="light">
 <head>
