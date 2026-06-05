@@ -10,11 +10,7 @@
         tailwind.config = {
             darkMode: 'class',
             theme: { 
-                extend: {
-                    colors: {
-                        slate: { 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
-                    }
-                } 
+                extend: { colors: { slate: { 700: '#334155', 800: '#1e293b', 900: '#0f172a' } } }
             }
         }
     </script>
@@ -32,43 +28,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        body {
-            margin: 0; padding: 0; overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
+        body { margin: 0; padding: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         #app-container { display: flex; flex-direction: column; height: 100vh; }
-        .main-workspace { flex-grow: 1; position: relative; overflow: hidden; background-color: #f8fafc; }
+        
+        .main-workspace { flex-grow: 1; position: relative; overflow: hidden; background-color: #ffffff; display: flex; flex-direction: column; }
+        html.dark .main-workspace { background-color: #0f172a; }
         * { transition: background-color 0.15s ease, border-color 0.15s ease; }
 
         /* Jspreadsheet Constraints */
         .jexcel_container { width: 100% !important; height: 100% !important; border: none !important; }
         .jexcel_content { height: 100% !important; width: 100% !important; box-shadow: none; }
 
-        /* --- Swap Cursors --- */
-        .jexcel thead td, 
-        .jexcel tbody tr td.jexcel_row {
-            cursor: pointer !important;
-            transition: background-color 0.2s;
-        }
-        .jexcel thead td:hover, 
-        .jexcel tbody tr td.jexcel_row:hover {
-            background-color: #e2e8f0 !important; /* Visual feedback on hover */
-        }
-        html.dark .jexcel thead td:hover, 
-        html.dark .jexcel tbody tr td.jexcel_row:hover {
-            background-color: #475569 !important;
-        }
+        /* Swap Cursors */
+        .jexcel thead td, .jexcel tbody tr td.jexcel_row { cursor: pointer !important; transition: background-color 0.2s; }
+        .jexcel thead td:hover, .jexcel tbody tr td.jexcel_row:hover { background-color: #e2e8f0 !important; }
+        html.dark .jexcel thead td:hover, html.dark .jexcel tbody tr td.jexcel_row:hover { background-color: #475569 !important; }
 
-        /* --- Dynamic Highlight Classes --- */
+        /* Dynamic Highlighters */
         .highlight-match { background-color: #fef08a !important; color: #000 !important; font-weight: 600; }
         html.dark .highlight-match { background-color: #ca8a04 !important; color: #fff !important; }
-        
         .highlight-limit { background-color: #fca5a5 !important; color: #7f1d1d !important; font-weight: 600; }
         html.dark .highlight-limit { background-color: #991b1b !important; color: #fecaca !important; }
 
-        /* --- Dark Mode Palette --- */
-        html.dark .main-workspace { background-color: #0f172a; }
+        /* Dark Mode Palette */
         html.dark .jexcel_container { background: #0f172a !important; border-color: #334155 !important; }
         html.dark .jexcel_content { background: #0f172a !important; }
         html.dark .jexcel tbody tr td { background-color: #0f172a !important; color: #e2e8f0 !important; border-bottom: 1px solid #1e293b !important; border-right: 1px solid #1e293b !important; }
@@ -83,9 +65,10 @@
         html.dark .jexcel_pagination { background: #1e293b !important; color: #cbd5e1 !important; border-top: 1px solid #334155 !important; }
         html.dark .jexcel_pagination > div > div { background-color: #0f172a; border-color: #334155; color: #e2e8f0; }
 
-        /* Toolbar Scrollbar */
+        /* Custom Scrollbars */
         .tools-scrollbar::-webkit-scrollbar { height: 6px; }
-        .tools-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .tools-scrollbar::-webkit-scrollbar-track { background: transparent; border-bottom: 1px solid #e2e8f0;}
+        html.dark .tools-scrollbar::-webkit-scrollbar-track { border-bottom-color: #334155; }
         .tools-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         html.dark .tools-scrollbar::-webkit-scrollbar-thumb { background-color: #475569; }
 
@@ -99,8 +82,8 @@
     <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity">
         <div class="bg-white dark:bg-slate-800 px-8 py-6 rounded-xl shadow-2xl flex flex-col items-center">
             <div class="loader ease-linear rounded-full border-4 border-gray-200 dark:border-slate-600 h-12 w-12 mb-4"></div>
-            <h2 class="text-center text-gray-800 dark:text-gray-100 text-lg font-semibold">Processing File...</h2>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center max-w-xs">Large files take a moment to format safely.</p>
+            <h2 class="text-center text-gray-800 dark:text-gray-100 text-lg font-semibold">Processing Data...</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center max-w-xs" id="loading-text">Loading files safely...</p>
         </div>
     </div>
 
@@ -112,23 +95,24 @@
                     <span class="material-icons text-xl">table_chart</span>
                 </div>
                 <div>
-                    <input type="text" id="doc-title" value="Untitled Spreadsheet" class="text-xl font-semibold text-gray-800 dark:text-gray-100 bg-transparent border-b-2 border-transparent hover:border-gray-300 dark:hover:border-slate-500 focus:border-green-500 focus:outline-none px-1 py-0.5 w-48 lg:w-80" placeholder="Name your document..." />
+                    <input type="text" id="doc-title" value="Workbook 1" class="text-xl font-semibold text-gray-800 dark:text-gray-100 bg-transparent border-b-2 border-transparent hover:border-gray-300 dark:hover:border-slate-500 focus:border-green-500 focus:outline-none px-1 py-0.5 w-48 lg:w-80" placeholder="Name your workbook..." />
                 </div>
             </div>
 
             <div class="flex items-center space-x-2 flex-nowrap">
-                <input type="file" id="file-input" accept=".csv, .xlsx, .xls" class="hidden">
+                <input type="file" id="file-input" accept=".csv, .xlsx, .xls" class="hidden" multiple>
+                
                 <button id="btn-theme" class="p-2 text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md" title="Toggle Dark Mode">
                     <span class="material-icons text-sm" id="theme-icon">dark_mode</span>
                 </button>
                 <div class="w-px h-6 bg-gray-300 dark:bg-slate-600 mx-1"></div>
                 
                 <button id="btn-new" class="text-gray-600 dark:text-gray-300 hover:text-green-600 hover:bg-green-50 dark:hover:bg-slate-700 px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap">
-                    New File
+                    New Tab
                 </button>
                 <button id="btn-upload" class="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 px-3 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1 border border-gray-200 dark:border-slate-600 shadow-sm whitespace-nowrap">
                     <span class="material-icons text-sm">upload_file</span>
-                    <span class="hidden sm:inline">Upload Data</span>
+                    <span class="hidden sm:inline">Import Files</span>
                 </button>
 
                 <div class="relative">
@@ -137,22 +121,22 @@
                         <span class="hidden sm:inline">Download</span>
                         <span class="material-icons text-sm">expand_more</span>
                     </button>
-                    <div id="dropdown-content" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-md shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden z-50">
-                        <button id="export-csv" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center"><span class="material-icons text-sm mr-2 text-blue-500">description</span> Save as .CSV</button>
-                        <button id="export-xlsx" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center"><span class="material-icons text-sm mr-2 text-green-500">grid_on</span> Save as .XLSX</button>
-                        <button id="export-pdf" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center"><span class="material-icons text-sm mr-2 text-red-500">picture_as_pdf</span> Export to PDF</button>
+                    <div id="dropdown-content" class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-md shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden z-50">
+                        <button id="export-csv" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center"><span class="material-icons text-sm mr-2 text-blue-500">description</span> Save Active as .CSV</button>
+                        <button id="export-xlsx" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center"><span class="material-icons text-sm mr-2 text-green-500">grid_on</span> Save ALL to .XLSX</button>
+                        <button id="export-pdf" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center"><span class="material-icons text-sm mr-2 text-red-500">picture_as_pdf</span> Export Active to PDF</button>
                     </div>
                 </div>
             </div>
         </nav>
 
-        <div class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-2 flex items-center gap-3 text-sm z-20 overflow-x-auto tools-scrollbar w-full">
+        <div class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-2 flex items-center gap-3 text-sm z-20 overflow-x-auto tools-scrollbar w-full flex-none">
             <span class="text-gray-500 dark:text-gray-400 font-medium flex-shrink-0 whitespace-nowrap">Quick Tools:</span>
             
-            <button id="btn-add-row" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap" title="Click a cell, then insert row after it">
+            <button id="btn-add-row" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap">
                 <span class="material-icons text-[16px] mr-1">add_row</span> Add Row
             </button>
-            <button id="btn-add-col" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap" title="Click a cell, then insert column after it">
+            <button id="btn-add-col" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap">
                 <span class="material-icons text-[16px] mr-1">view_column</span> Add Col
             </button>
             
@@ -161,10 +145,10 @@
             <div class="flex items-center space-x-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-2 py-1 rounded flex-shrink-0">
                 <span class="text-gray-500 dark:text-gray-400 text-xs font-medium">Char Limit:</span>
                 <input type="number" id="char-limit-input" placeholder="0" class="w-16 px-1.5 py-0.5 text-xs border border-gray-300 rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:border-orange-500">
-                <button id="btn-highlight-limit" class="px-2 py-0.5 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-slate-700 rounded flex items-center text-xs whitespace-nowrap" title="Highlight cells over limit">
+                <button id="btn-highlight-limit" class="px-2 py-0.5 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-slate-700 rounded flex items-center text-xs whitespace-nowrap">
                     <span class="material-icons text-[14px] mr-1">rule</span> Check
                 </button>
-                <button id="btn-clear-highlight" class="px-1 py-0.5 text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-gray-200 dark:hover:bg-slate-700 rounded flex items-center" title="Clear Limit Highlights">
+                <button id="btn-clear-highlight" class="px-1 py-0.5 text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-gray-200 dark:hover:bg-slate-700 rounded flex items-center">
                     <span class="material-icons text-[14px]">clear</span>
                 </button>
             </div>
@@ -179,16 +163,19 @@
             </button>
             
             <div class="w-px h-5 bg-gray-300 dark:bg-slate-600 flex-shrink-0"></div>
-            
             <span class="text-blue-500 dark:text-blue-400 italic text-xs flex-shrink-0 mr-2">Tip: Double-click Headers (A, B, 1, 2) to Swap</span>
 
             <button id="btn-clear" class="px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap ml-auto">
-                <span class="material-icons text-[16px] mr-1">delete_sweep</span> Clear Grid
+                <span class="material-icons text-[16px] mr-1">delete_sweep</span> Clear Sheet
             </button>
         </div>
 
         <main class="main-workspace">
-            <div id="spreadsheet" class="w-full h-full"></div>
+            <div id="tabs-container" class="bg-gray-100 dark:bg-[#0f172a] border-b border-gray-300 dark:border-slate-700 px-2 pt-2 flex space-x-1 overflow-x-auto tools-scrollbar z-10 flex-none">
+                </div>
+            
+            <div id="sheets-wrapper" class="flex-grow relative">
+                </div>
         </main>
 
         <footer class="flex-none bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 text-center py-2 text-xs font-medium text-gray-500 dark:text-gray-400 z-10">
@@ -199,130 +186,70 @@
 
     <script>
         window.jsPDF = window.jspdf.jsPDF;
-        let sheetInstance = null;
-        let isFrozen = false;
         
-        // Memory trackers
+        // Multi-Sheet Architecture State
+        let sheets = []; // Array of { id, name, container, instance }
+        let currentSheetId = null;
+        let sheetCounter = 0;
+        
+        let sheetInstance = null; // Always points to the ACTIVE sheet instance for toolbars to use natively
+        
+        let isFrozen = false;
         let lastSelectedRow = null;
         let lastSelectedCol = null;
-        let currentSearchQuery = "";
 
         document.addEventListener('DOMContentLoaded', () => {
             
             const overlay = document.getElementById('loading-overlay');
             const dropdownContent = document.getElementById('dropdown-content');
 
-            // --- Dropdown Engine ---
             document.getElementById('btn-download-menu').addEventListener('click', (e) => {
                 e.stopPropagation(); dropdownContent.classList.toggle('hidden');
             });
             document.addEventListener('click', () => dropdownContent.classList.add('hidden'));
 
-            // --- Custom Swap Engine ---
-            // Listens for double clicks on Headers to initiate a perfectly clean data swap
-            document.getElementById('spreadsheet').addEventListener('dblclick', function(e) {
-                // 1. Column Swap (Double clicked A, B, C...)
-                if (e.target.tagName === 'TD' && e.target.closest('thead')) {
-                    let colIndex = e.target.getAttribute('data-x');
-                    if (colIndex !== null) {
-                        let colLetter = jspreadsheet.helpers.getColumnName(colIndex);
-                        let targetLetter = prompt(`SWAP COLUMN:\n\nYou double-clicked Column ${colLetter}.\nEnter the letter of the column you want to swap it with (e.g., A, B, C):`);
-                        
-                        if (targetLetter) {
-                            let targetIndex = jspreadsheet.helpers.getIdFromColumnName(targetLetter.toUpperCase(), true);
-                            if (targetIndex !== null && targetIndex >= 0 && targetIndex !== parseInt(colIndex)) {
-                                swapColumns(parseInt(colIndex), targetIndex);
-                            }
-                        }
-                    }
-                }
-                // 2. Row Swap (Double clicked 1, 2, 3...)
-                else if (e.target.tagName === 'TD' && e.target.classList.contains('jexcel_row')) {
-                    let rowIndex = e.target.parentElement.getAttribute('data-y');
-                    if (rowIndex !== null) {
-                        let displayRow = parseInt(rowIndex) + 1;
-                        let targetRow = prompt(`SWAP ROW:\n\nYou double-clicked Row ${displayRow}.\nEnter the row number you want to swap it with:`);
-                        
-                        if (targetRow) {
-                            let tIndex = parseInt(targetRow) - 1;
-                            if (!isNaN(tIndex) && tIndex >= 0 && tIndex !== parseInt(rowIndex)) {
-                                swapRows(parseInt(rowIndex), tIndex);
-                            }
-                        }
-                    }
-                }
-            });
-
-            function swapColumns(col1, col2) {
-                let data = sheetInstance.getData();
-                let maxCol = Math.max(col1, col2);
+            // --- Multi-Sheet Core Engine ---
+            
+            function createSheet(name, data) {
+                sheetCounter++;
+                const id = `sheet_${sheetCounter}`;
                 
-                for(let i = 0; i < data.length; i++) {
-                    while(data[i].length <= maxCol) data[i].push(""); // Pad array if needed
-                    let temp = data[i][col1];
-                    data[i][col1] = data[i][col2];
-                    data[i][col2] = temp;
-                }
-                sheetInstance.setData(data); // Injects cleanly without breaking headers
-            }
-
-            function swapRows(row1, row2) {
-                let data = sheetInstance.getData();
-                let maxRow = Math.max(row1, row2);
+                // Construct Grid DOM Container
+                const wrapper = document.getElementById('sheets-wrapper');
+                const container = document.createElement('div');
+                container.id = id;
+                container.className = 'w-full h-full absolute inset-0 bg-white dark:bg-slate-900';
+                wrapper.appendChild(container);
                 
-                while(data.length <= maxRow) {
-                    data.push(new Array(data[0].length).fill("")); // Pad rows if needed
-                }
-                
-                let temp = data[row1];
-                data[row1] = data[row2];
-                data[row2] = temp;
-                sheetInstance.setData(data);
-            }
-
-            // --- Jspreadsheet Core Engine ---
-            function renderGrid(data) {
-                if (sheetInstance) sheetInstance.destroy();
-                
-                sheetInstance = jspreadsheet(document.getElementById('spreadsheet'), {
+                // Initialize Jspreadsheet instance
+                const instance = jspreadsheet(container, {
                     data: data,
                     minDimensions: [26, 100],
                     defaultColWidth: 100,
-                    search: true,
-                    filters: true,
-                    tableOverflow: true,
-                    tableWidth: "100%",
-                    tableHeight: "100%",
-                    wordWrap: true,
+                    search: true, filters: true, tableOverflow: true,
+                    tableWidth: "100%", tableHeight: "100%", wordWrap: true,
+                    pagination: 100, paginationOptions: [50, 100, 250, 500, 1000],
+                    columnDrag: false, rowDrag: false, // Disabled native to enforce stable double-click swap
                     
-                    pagination: 100,
-                    paginationOptions: [50, 100, 250, 500, 1000],
-                    
-                    // DISABLED Native dragging because it breaks label indexing. Handled by Double Click Swap.
-                    columnDrag: false, 
-                    rowDrag: false,
-                    
-                    onselection: function(instance, x1, y1, x2, y2) {
+                    onselection: function(inst, x1, y1, x2, y2) {
                         lastSelectedCol = Math.max(parseInt(x1), parseInt(x2));
                         lastSelectedRow = Math.max(parseInt(y1), parseInt(y2));
                     },
 
-                    onsearch: function(el, obj, query) {
-                        currentSearchQuery = query ? query.toLowerCase() : "";
-                    },
-
-                    updateTable: function(instance, cell, col, row, val, label, cellName) {
+                    updateTable: function(inst, cell, col, row, val, label, cellName) {
                         cell.classList.remove('highlight-match');
-                        if (currentSearchQuery && val !== null && val !== undefined && val !== "") {
-                            if (val.toString().toLowerCase().includes(currentSearchQuery)) {
+                        const searchInput = inst.parentElement.querySelector('.jsuites-search-root input');
+                        const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                        if (query && val !== null && val !== undefined && val !== "") {
+                            if (val.toString().toLowerCase().includes(query)) {
                                 cell.classList.add('highlight-match');
                             }
                         }
                     },
 
                     toolbar: [
-                        { type: 'i', content: 'undo', onclick: () => sheetInstance.undo(), tooltip: 'Undo' },
-                        { type: 'i', content: 'redo', onclick: () => sheetInstance.redo(), tooltip: 'Redo' },
+                        { type: 'i', content: 'undo', onclick: () => instance.undo(), tooltip: 'Undo' },
+                        { type: 'i', content: 'redo', onclick: () => instance.redo(), tooltip: 'Redo' },
                         { type: 'select', k: 'font-family', v: ['Arial', 'Verdana', 'Courier New', 'Times New Roman'] },
                         { type: 'select', k: 'font-size', v: ['9px', '10px', '12px', '14px', '16px', '18px'] },
                         { type: 'i', content: 'format_bold', k: 'font-weight', v: 'bold' },
@@ -334,9 +261,127 @@
                         { type: 'i', content: 'format_align_right', k: 'text-align', v: 'right' }
                     ]
                 });
+
+                sheets.push({ id, name, container, instance });
+                activateSheet(id);
             }
 
-            renderGrid([[]]);
+            function activateSheet(id) {
+                currentSheetId = id;
+                
+                sheets.forEach(sheet => {
+                    if (sheet.id === id) {
+                        sheet.container.style.zIndex = '10';
+                        sheet.container.style.opacity = '1';
+                        sheet.container.style.pointerEvents = 'auto';
+                        sheetInstance = sheet.instance; // Re-bind global pointer for toolbars
+                    } else {
+                        sheet.container.style.zIndex = '0';
+                        sheet.container.style.opacity = '0';
+                        sheet.container.style.pointerEvents = 'none';
+                    }
+                });
+                renderTabs();
+            }
+
+            function renderTabs() {
+                const container = document.getElementById('tabs-container');
+                container.innerHTML = '';
+                
+                sheets.forEach(sheet => {
+                    const isActive = sheet.id === currentSheetId;
+                    const tab = document.createElement('div');
+                    
+                    let classes = 'px-4 py-1.5 cursor-pointer text-sm font-medium rounded-t-lg transition-colors flex items-center whitespace-nowrap border-t border-l border-r ';
+                    if (isActive) {
+                        classes += 'bg-white dark:bg-slate-900 text-green-600 dark:text-green-400 border-gray-300 dark:border-slate-700 -mb-px'; 
+                    } else {
+                        classes += 'bg-gray-200 dark:bg-slate-800 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-300 dark:hover:bg-slate-700 mt-1';
+                    }
+                    tab.className = classes;
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.innerText = sheet.name;
+                    tab.appendChild(nameSpan);
+                    
+                    if (sheets.length > 1) {
+                        const closeBtn = document.createElement('span');
+                        closeBtn.innerHTML = '<span class="material-icons text-[14px]">close</span>';
+                        closeBtn.className = 'ml-2 flex items-center text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 p-0.5';
+                        closeBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            deleteSheet(sheet.id);
+                        };
+                        tab.appendChild(closeBtn);
+                    }
+                    
+                    tab.onclick = () => activateSheet(sheet.id);
+                    container.appendChild(tab);
+                });
+            }
+
+            function deleteSheet(id) {
+                if(sheets.length <= 1) return;
+                const index = sheets.findIndex(s => s.id === id);
+                if(confirm(`Close "${sheets[index].name}"?`)) {
+                    sheets[index].instance.destroy();
+                    sheets[index].container.remove();
+                    sheets.splice(index, 1);
+                    if(currentSheetId === id) activateSheet(sheets[Math.max(0, index - 1)].id);
+                    else renderTabs();
+                }
+            }
+
+            // Start Initial State
+            createSheet('Sheet 1', [[]]);
+
+            // --- Custom Double-Click Swap Engine ---
+            document.getElementById('sheets-wrapper').addEventListener('dblclick', function(e) {
+                if(!sheetInstance) return;
+
+                if (e.target.tagName === 'TD' && e.target.closest('thead')) {
+                    let colIndex = e.target.getAttribute('data-x');
+                    if (colIndex !== null) {
+                        let colLetter = jspreadsheet.helpers.getColumnName(colIndex);
+                        let targetLetter = prompt(`SWAP COLUMN:\n\nYou double-clicked Column ${colLetter}.\nEnter column letter to swap with (e.g., A, B, C):`);
+                        
+                        if (targetLetter) {
+                            let targetIndex = jspreadsheet.helpers.getIdFromColumnName(targetLetter.toUpperCase(), true);
+                            if (targetIndex !== null && targetIndex >= 0 && targetIndex !== parseInt(colIndex)) {
+                                let data = sheetInstance.getData();
+                                let maxCol = Math.max(parseInt(colIndex), targetIndex);
+                                for(let i = 0; i < data.length; i++) {
+                                    while(data[i].length <= maxCol) data[i].push(""); 
+                                    let temp = data[i][colIndex];
+                                    data[i][colIndex] = data[i][targetIndex];
+                                    data[i][targetIndex] = temp;
+                                }
+                                sheetInstance.setData(data); 
+                            }
+                        }
+                    }
+                }
+                else if (e.target.tagName === 'TD' && e.target.classList.contains('jexcel_row')) {
+                    let rowIndex = e.target.parentElement.getAttribute('data-y');
+                    if (rowIndex !== null) {
+                        let displayRow = parseInt(rowIndex) + 1;
+                        let targetRow = prompt(`SWAP ROW:\n\nYou double-clicked Row ${displayRow}.\nEnter row number to swap with:`);
+                        
+                        if (targetRow) {
+                            let tIndex = parseInt(targetRow) - 1;
+                            if (!isNaN(tIndex) && tIndex >= 0 && tIndex !== parseInt(rowIndex)) {
+                                let data = sheetInstance.getData();
+                                let maxRow = Math.max(parseInt(rowIndex), tIndex);
+                                while(data.length <= maxRow) data.push(new Array(data[0].length).fill("")); 
+                                let temp = data[rowIndex];
+                                data[rowIndex] = data[tIndex];
+                                data[tIndex] = temp;
+                                sheetInstance.setData(data);
+                            }
+                        }
+                    }
+                }
+            });
 
             // --- Theme Toggler ---
             const btnTheme = document.getElementById('btn-theme');
@@ -361,24 +406,24 @@
             const btnHighlightLimit = document.getElementById('btn-highlight-limit');
             const btnClearHighlight = document.getElementById('btn-clear-highlight');
             const charLimitInput = document.getElementById('char-limit-input');
-
             const clearLimits = () => document.querySelectorAll('.highlight-limit').forEach(c => c.classList.remove('highlight-limit'));
 
             btnHighlightLimit.addEventListener('click', () => {
                 clearLimits(); 
                 const limit = parseInt(charLimitInput.value);
-                if (isNaN(limit) || limit < 1) return alert("Enter a valid number for limit check.");
+                if (isNaN(limit) || limit < 1) return alert("Enter a valid number.");
                 
                 document.querySelectorAll('tbody td[data-x]').forEach(cell => {
-                    const text = cell.innerText || "";
-                    if (text.length > limit) cell.classList.add('highlight-limit');
+                    if ((cell.innerText || "").length > limit) cell.classList.add('highlight-limit');
                 });
             });
 
             btnClearHighlight.addEventListener('click', () => { charLimitInput.value = ''; clearLimits(); });
 
             // --- Window Toggles ---
-            document.getElementById('btn-clear').addEventListener('click', () => { if(confirm("Discard all data?")) renderGrid([[]]); });
+            document.getElementById('btn-clear').addEventListener('click', () => { 
+                if(confirm("Clear active sheet data?")) sheetInstance.setData([[]]); 
+            });
             
             document.getElementById('btn-fullscreen').addEventListener('click', () => {
                 if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.log(err));
@@ -391,78 +436,118 @@
                 const currentData = sheetInstance.getData();
                 config.freezeColumns = isFrozen ? 1 : 0;
                 config.freezeRows = isFrozen ? 1 : 0;
-                sheetInstance.destroy();
-                sheetInstance = null;
-                renderGrid(currentData);
+                
+                // Locate the active sheet object and reconstruct its container
+                const activeObj = sheets.find(s => s.id === currentSheetId);
+                activeObj.instance.destroy();
+                
+                activeObj.instance = jspreadsheet(activeObj.container, config);
+                activeObj.instance.setData(currentData);
+                sheetInstance = activeObj.instance;
+
                 document.getElementById('btn-freeze').classList.toggle('bg-green-100');
                 document.getElementById('btn-freeze').classList.toggle('dark:bg-slate-600');
             });
 
-            // --- Smart Hybrid Uploader ---
-            const fileInput = document.getElementById('file-input');
-            const docTitle = document.getElementById('doc-title');
+            document.getElementById('btn-new').addEventListener('click', () => {
+                createSheet(`Sheet ${sheetCounter + 1}`, [[]]);
+            });
 
+            // --- BULK Smart Upload Architecture ---
+            const fileInput = document.getElementById('file-input');
             document.getElementById('btn-upload').addEventListener('click', () => fileInput.click());
 
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                docTitle.value = file.name.split('.')[0];
-                const fileExt = file.name.split('.').pop().toLowerCase();
-
-                if (fileExt === 'csv') {
-                    Papa.parse(file, { skipEmptyLines: true, complete: function(results) { renderGrid(results.data); } });
-                } else {
-                    overlay.classList.remove('hidden'); 
-                    requestAnimationFrame(() => requestAnimationFrame(() => {
+            const parseFile = (file, ext) => {
+                return new Promise((resolve, reject) => {
+                    if (ext === 'csv') {
+                        Papa.parse(file, { skipEmptyLines: true, complete: res => resolve(res.data), error: err => reject(err) });
+                    } else {
                         const reader = new FileReader();
-                        reader.onload = (event) => {
+                        reader.onload = e => {
                             try {
-                                const workbook = XLSX.read(event.target.result, { type: 'binary', cellDates: true });
+                                const workbook = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
                                 const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { 
                                     header: 1, defval: "", raw: false, dateNF: 'yyyy-mm-dd hh:mm:ss' 
                                 });
-                                if(rawData.length > 0) renderGrid(rawData);
-                            } catch (error) { alert("Error parsing Excel file."); } 
-                            finally { overlay.classList.add('hidden'); }
+                                resolve(rawData);
+                            } catch(err) { reject(err); }
                         };
+                        reader.onerror = err => reject(err);
                         reader.readAsBinaryString(file);
-                    }));
+                    }
+                });
+            };
+
+            fileInput.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files);
+                if (files.length === 0) return;
+
+                document.getElementById('loading-text').innerText = `Processing ${files.length} file(s)...`;
+                overlay.classList.remove('hidden');
+
+                try {
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        const fileExt = file.name.split('.').pop().toLowerCase();
+                        const baseName = file.name.split('.')[0];
+                        
+                        const data = await parseFile(file, fileExt);
+                        
+                        // If it's the first upload, and the initial sheet is completely empty, replace it.
+                        if (i === 0 && sheets.length === 1 && sheets[0].name === 'Sheet 1' && JSON.stringify(sheetInstance.getData()) === '[]') {
+                            sheets[0].name = baseName;
+                            sheetInstance.setData(data);
+                            renderTabs();
+                        } else {
+                            createSheet(baseName, data);
+                        }
+                    }
+                } catch (err) {
+                    alert("Error parsing some files. Check formatting.");
+                } finally {
+                    overlay.classList.add('hidden');
+                    e.target.value = ''; 
                 }
-                e.target.value = ''; 
             });
 
-            // --- Unified Export System ---
-            const getFileName = () => docTitle.value.trim() || 'Untitled_Spreadsheet';
+            // --- Multi-Sheet Export System ---
+            const getDocName = () => document.getElementById('doc-title').value.trim() || 'Workbook';
 
-            document.getElementById('btn-new').addEventListener('click', () => {
-                if(confirm("Discard unsaved changes?")) {
-                    docTitle.value = "Untitled Spreadsheet";
-                    renderGrid([[]]);
-                }
-            });
-
-            const exportData = (format) => {
-                dropdownContent.classList.add('hidden'); 
+            document.getElementById('export-csv').addEventListener('click', (e) => { 
+                e.preventDefault(); dropdownContent.classList.add('hidden');
                 const finalData = [(sheetInstance.getHeaders() || "").split(','), ...sheetInstance.getData()];
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(finalData), "Sheet1");
-                XLSX.writeFile(workbook, `${getFileName()}.${format}`);
-            };
+                const activeName = sheets.find(s => s.id === currentSheetId).name;
+                XLSX.writeFile(workbook, `${activeName}.csv`);
+            });
 
-            document.getElementById('export-csv').addEventListener('click', (e) => { e.preventDefault(); exportData('csv'); });
-            document.getElementById('export-xlsx').addEventListener('click', (e) => { e.preventDefault(); exportData('xlsx'); });
+            document.getElementById('export-xlsx').addEventListener('click', (e) => { 
+                e.preventDefault(); dropdownContent.classList.add('hidden');
+                
+                const workbook = XLSX.utils.book_new();
+                sheets.forEach((sheet, index) => {
+                    let sName = sheet.name.substring(0, 31).replace(/[\\/?*\[\]]/g, ''); // Fix invalid excel characters
+                    if(!sName) sName = `Tab${index+1}`;
+                    
+                    const finalData = [(sheet.instance.getHeaders() || "").split(','), ...sheet.instance.getData()];
+                    const worksheet = XLSX.utils.aoa_to_sheet(finalData);
+                    XLSX.utils.book_append_sheet(workbook, worksheet, sName);
+                });
+                
+                XLSX.writeFile(workbook, `${getDocName()}.xlsx`);
+            });
             
             document.getElementById('export-pdf').addEventListener('click', (e) => {
                 e.preventDefault(); dropdownContent.classList.add('hidden'); 
+                const activeName = sheets.find(s => s.id === currentSheetId).name;
                 const doc = new jsPDF({ orientation: "landscape" });
-                doc.text(getFileName(), 14, 15);
+                doc.text(activeName, 14, 15);
                 doc.autoTable({
                     head: [(sheetInstance.getHeaders() || "").split(',')], body: sheetInstance.getData(),
                     startY: 20, theme: document.documentElement.classList.contains('dark') ? 'grid' : 'striped', styles: { fontSize: 8 }
                 });
-                doc.save(`${getFileName()}.pdf`);
+                doc.save(`${activeName}.pdf`);
             });
         });
     </script>
