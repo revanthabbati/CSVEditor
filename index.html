@@ -29,9 +29,12 @@
 
     <style>
         body { margin: 0; padding: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        #app-container { display: flex; flex-direction: column; height: 100vh; }
         
-        .main-workspace { flex-grow: 1; position: relative; overflow: hidden; background-color: #ffffff; display: flex; flex-direction: column; }
+        /* Strict Flexbox Layout to prevent footer overlap */
+        #app-container { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .main-workspace { flex: 1 1 0%; min-height: 0; display: flex; flex-direction: column; position: relative; background-color: #ffffff; }
+        #sheets-wrapper { flex: 1 1 0%; min-height: 0; position: relative; overflow: hidden; }
+        
         html.dark .main-workspace { background-color: #0f172a; }
         * { transition: background-color 0.15s ease, border-color 0.15s ease; }
 
@@ -39,10 +42,17 @@
         .jexcel_container { width: 100% !important; height: 100% !important; border: none !important; }
         .jexcel_content { height: 100% !important; width: 100% !important; box-shadow: none; }
 
-        /* Swap Cursors */
-        .jexcel thead td, .jexcel tbody tr td.jexcel_row { cursor: pointer !important; transition: background-color 0.2s; }
+        /* Drag Cursors */
+        .jexcel thead td, .jexcel tbody tr td.jexcel_row { cursor: grab !important; transition: background-color 0.2s; }
+        .jexcel thead td:active, .jexcel tbody tr td.jexcel_row:active { cursor: grabbing !important; }
         .jexcel thead td:hover, .jexcel tbody tr td.jexcel_row:hover { background-color: #e2e8f0 !important; }
         html.dark .jexcel thead td:hover, html.dark .jexcel tbody tr td.jexcel_row:hover { background-color: #475569 !important; }
+
+        /* Custom Filter Dropdown Actions */
+        .custom-filter-actions button { transition: color 0.1s; }
+        .custom-filter-actions button:hover { color: #16a34a; }
+        html.dark .jsuites-dropdown { background-color: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+        html.dark .jsuites-dropdown ul li:hover { background-color: #334155 !important; }
 
         /* Dynamic Highlighters */
         .highlight-match { background-color: #fef08a !important; color: #000 !important; font-weight: 600; }
@@ -83,7 +93,6 @@
         <div class="bg-white dark:bg-slate-800 px-8 py-6 rounded-xl shadow-2xl flex flex-col items-center">
             <div class="loader ease-linear rounded-full border-4 border-gray-200 dark:border-slate-600 h-12 w-12 mb-4"></div>
             <h2 class="text-center text-gray-800 dark:text-gray-100 text-lg font-semibold">Processing Data...</h2>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center max-w-xs" id="loading-text">Loading files safely...</p>
         </div>
     </div>
 
@@ -131,54 +140,47 @@
         </nav>
 
         <div class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-2 flex items-center gap-3 text-sm z-20 overflow-x-auto tools-scrollbar w-full flex-none">
-            <span class="text-gray-500 dark:text-gray-400 font-medium flex-shrink-0 whitespace-nowrap">Quick Tools:</span>
-            
-            <button id="btn-add-row" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap">
-                <span class="material-icons text-[16px] mr-1">add_row</span> Add Row
-            </button>
-            <button id="btn-add-col" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap">
-                <span class="material-icons text-[16px] mr-1">view_column</span> Add Col
-            </button>
+            <span class="text-gray-500 dark:text-gray-400 font-medium flex-shrink-0 whitespace-nowrap">Insert:</span>
+            <button id="btn-add-row" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap"><span class="material-icons text-[16px] mr-1">add_row</span> Row</button>
+            <button id="btn-add-col" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap"><span class="material-icons text-[16px] mr-1">view_column</span> Col</button>
             
             <div class="w-px h-5 bg-gray-300 dark:bg-slate-600 flex-shrink-0"></div>
             
+            <span class="text-gray-500 dark:text-gray-400 font-medium flex-shrink-0 whitespace-nowrap">Sort:</span>
+            <button id="btn-sort-asc" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap" title="Sort Column A-Z"><span class="material-icons text-[16px] mr-1">sort_by_alpha</span> A-Z</button>
+            <button id="btn-sort-desc" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap" title="Sort Column Z-A"><span class="material-icons text-[16px] mr-1">sort</span> Z-A</button>
+
+            <div class="w-px h-5 bg-gray-300 dark:bg-slate-600 flex-shrink-0"></div>
+            
             <div class="flex items-center space-x-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-2 py-1 rounded flex-shrink-0">
-                <span class="text-gray-500 dark:text-gray-400 text-xs font-medium">Char Limit:</span>
+                <span class="text-gray-500 dark:text-gray-400 text-xs font-medium">Limit:</span>
                 <input type="number" id="char-limit-input" placeholder="0" class="w-16 px-1.5 py-0.5 text-xs border border-gray-300 rounded dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:border-orange-500">
-                <button id="btn-highlight-limit" class="px-2 py-0.5 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-slate-700 rounded flex items-center text-xs whitespace-nowrap">
-                    <span class="material-icons text-[14px] mr-1">rule</span> Check
-                </button>
-                <button id="btn-clear-highlight" class="px-1 py-0.5 text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-gray-200 dark:hover:bg-slate-700 rounded flex items-center">
-                    <span class="material-icons text-[14px]">clear</span>
-                </button>
+                <button id="btn-highlight-limit" class="px-2 py-0.5 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-slate-700 rounded flex items-center text-xs whitespace-nowrap"><span class="material-icons text-[14px] mr-1">rule</span> Check</button>
+                <button id="btn-clear-highlight" class="px-1 py-0.5 text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-gray-200 dark:hover:bg-slate-700 rounded flex items-center"><span class="material-icons text-[14px]">clear</span></button>
             </div>
 
             <div class="w-px h-5 bg-gray-300 dark:bg-slate-600 flex-shrink-0"></div>
             
-            <button id="btn-freeze" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap">
-                <span class="material-icons text-[16px] mr-1">ac_unit</span> Freeze Panes
-            </button>
-            <button id="btn-fullscreen" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap">
-                <span class="material-icons text-[16px] mr-1">fullscreen</span> Fullscreen
-            </button>
+            <button id="btn-freeze" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap"><span class="material-icons text-[16px] mr-1">ac_unit</span> Freeze</button>
+            <button id="btn-fullscreen" class="px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap"><span class="material-icons text-[16px] mr-1">fullscreen</span> Full</button>
             
-            <div class="w-px h-5 bg-gray-300 dark:bg-slate-600 flex-shrink-0"></div>
-            <span class="text-blue-500 dark:text-blue-400 italic text-xs flex-shrink-0 mr-2">Tip: Double-click Headers (A, B, 1, 2) to Swap</span>
-
-            <button id="btn-clear" class="px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap ml-auto">
-                <span class="material-icons text-[16px] mr-1">delete_sweep</span> Clear Sheet
-            </button>
+            <button id="btn-clear" class="px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 rounded flex items-center flex-shrink-0 whitespace-nowrap ml-auto"><span class="material-icons text-[16px] mr-1">delete_sweep</span> Clear</button>
         </div>
 
         <main class="main-workspace">
-            <div id="tabs-container" class="bg-gray-100 dark:bg-[#0f172a] border-b border-gray-300 dark:border-slate-700 px-2 pt-2 flex space-x-1 overflow-x-auto tools-scrollbar z-10 flex-none">
-                </div>
-            
-            <div id="sheets-wrapper" class="flex-grow relative">
-                </div>
+            <div id="tabs-container" class="bg-gray-100 dark:bg-[#0f172a] border-b border-gray-300 dark:border-slate-700 px-2 pt-2 flex space-x-1 overflow-x-auto tools-scrollbar z-10 flex-none"></div>
+            <div id="sheets-wrapper"></div>
         </main>
 
-        <footer class="flex-none bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 text-center py-2 text-xs font-medium text-gray-500 dark:text-gray-400 z-10">
+        <div class="flex-none bg-gray-50 dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 px-4 py-1.5 flex justify-between items-center text-xs font-medium text-gray-600 dark:text-gray-300 z-20">
+            <div id="status-selection" class="flex items-center"><span class="material-icons text-[14px] mr-1 text-blue-500">grid_on</span> Ready</div>
+            <div id="status-cell-info" class="flex items-center bg-gray-200 dark:bg-slate-700 px-2 py-0.5 rounded text-gray-700 dark:text-gray-200">
+                <span class="mr-3"><strong class="text-gray-900 dark:text-white" id="stat-words">0</strong> Words</span>
+                <span><strong class="text-gray-900 dark:text-white" id="stat-chars">0</strong> Characters</span>
+            </div>
+        </div>
+
+        <footer class="flex-none bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 text-center py-2 text-xs font-medium text-gray-500 dark:text-gray-500 z-10">
             Developed by <span class="text-green-600 dark:text-green-500 font-bold tracking-wide">Revanth Reddy Abbati</span>
         </footer>
 
@@ -187,12 +189,10 @@
     <script>
         window.jsPDF = window.jspdf.jsPDF;
         
-        // Multi-Sheet Architecture State
-        let sheets = []; // Array of { id, name, container, instance }
+        let sheets = []; 
         let currentSheetId = null;
         let sheetCounter = 0;
-        
-        let sheetInstance = null; // Always points to the ACTIVE sheet instance for toolbars to use natively
+        let sheetInstance = null; 
         
         let isFrozen = false;
         let lastSelectedRow = null;
@@ -208,32 +208,88 @@
             });
             document.addEventListener('click', () => dropdownContent.classList.add('hidden'));
 
+            // --- Select All / Deselect All Filter Injection Engine ---
+            document.addEventListener('mousedown', function(e) {
+                // When filter icon is clicked
+                if (e.target.classList.contains('jexcel_filter')) {
+                    setTimeout(() => {
+                        // Locate the active dropdown generated by jSuites
+                        const dropdown = document.querySelector('.jsuites-dropdown');
+                        if (dropdown && !dropdown.querySelector('.custom-filter-actions')) {
+                            const actionContainer = document.createElement('div');
+                            actionContainer.className = 'custom-filter-actions flex justify-between px-3 py-2 border-b border-gray-200 dark:border-slate-600 text-xs font-semibold bg-gray-50 dark:bg-slate-800';
+                            actionContainer.innerHTML = `
+                                <button class="text-blue-600 dark:text-blue-400 hover:text-blue-800" onclick="window.filterSelectAll(this)">Select All</button>
+                                <button class="text-red-600 dark:text-red-400 hover:text-red-800" onclick="window.filterDeselectAll(this)">Clear All</button>
+                            `;
+                            // Prepend it to the top of the dropdown
+                            dropdown.insertBefore(actionContainer, dropdown.firstChild);
+                        }
+                    }, 50); // Small buffer to let jSuites build the DOM
+                }
+            });
+
+            // Global functions for the injected buttons to simulate native clicks
+            window.filterSelectAll = function(btn) {
+                const items = btn.closest('.jsuites-dropdown').querySelectorAll('ul li input[type="checkbox"]');
+                items.forEach(i => { if(!i.checked) i.click(); });
+            };
+            window.filterDeselectAll = function(btn) {
+                const items = btn.closest('.jsuites-dropdown').querySelectorAll('ul li input[type="checkbox"]');
+                items.forEach(i => { if(i.checked) i.click(); });
+            };
+
+            // --- Status Bar Updating Engine ---
+            function updateStatusBar(instance, x1, y1, x2, y2) {
+                lastSelectedCol = Math.max(parseInt(x1), parseInt(x2));
+                lastSelectedRow = Math.max(parseInt(y1), parseInt(y2));
+
+                // 1. Update Selection Count
+                const rowCount = Math.abs(parseInt(y2) - parseInt(y1)) + 1;
+                const colCount = Math.abs(parseInt(x2) - parseInt(x1)) + 1;
+                let selectionText = rowCount > 1 || colCount > 1 ? `Selected: ${rowCount} row(s) x ${colCount} col(s)` : `Selected: Cell ${jspreadsheet.helpers.getColumnName(x1)}${parseInt(y1)+1}`;
+                document.getElementById('status-selection').innerHTML = `<span class="material-icons text-[14px] mr-1 text-blue-500">grid_on</span> ${selectionText}`;
+
+                // 2. Update Cell Stats (Words & Characters)
+                updateCellStats(instance, x1, y1);
+            }
+
+            function updateCellStats(instance, x, y) {
+                let val = instance.jexcel.getValueFromCoords(x, y);
+                val = val ? val.toString().trim() : "";
+                
+                const charCount = val.length;
+                const wordCount = val === "" ? 0 : val.split(/\s+/).length;
+                
+                document.getElementById('stat-words').innerText = wordCount;
+                document.getElementById('stat-chars').innerText = charCount;
+            }
+
             // --- Multi-Sheet Core Engine ---
-            
             function createSheet(name, data) {
                 sheetCounter++;
                 const id = `sheet_${sheetCounter}`;
                 
-                // Construct Grid DOM Container
                 const wrapper = document.getElementById('sheets-wrapper');
                 const container = document.createElement('div');
                 container.id = id;
                 container.className = 'w-full h-full absolute inset-0 bg-white dark:bg-slate-900';
                 wrapper.appendChild(container);
                 
-                // Initialize Jspreadsheet instance
                 const instance = jspreadsheet(container, {
-                    data: data,
-                    minDimensions: [26, 100],
-                    defaultColWidth: 100,
+                    data: data, minDimensions: [26, 100], defaultColWidth: 100,
                     search: true, filters: true, tableOverflow: true,
                     tableWidth: "100%", tableHeight: "100%", wordWrap: true,
                     pagination: 100, paginationOptions: [50, 100, 250, 500, 1000],
-                    columnDrag: false, rowDrag: false, // Disabled native to enforce stable double-click swap
                     
-                    onselection: function(inst, x1, y1, x2, y2) {
-                        lastSelectedCol = Math.max(parseInt(x1), parseInt(x2));
-                        lastSelectedRow = Math.max(parseInt(y1), parseInt(y2));
+                    // NATIVE DRAG & DROP ENABLED
+                    columnDrag: true, rowDrag: true, columnSorting: true,
+                    
+                    onselection: updateStatusBar,
+                    
+                    onchange: function(instance, cell, x, y, value) {
+                        // Live update stats if the edited cell is the currently selected one
+                        if (x == lastSelectedCol && y == lastSelectedRow) updateCellStats(instance, x, y);
                     },
 
                     updateTable: function(inst, cell, col, row, val, label, cellName) {
@@ -241,9 +297,7 @@
                         const searchInput = inst.parentElement.querySelector('.jsuites-search-root input');
                         const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
                         if (query && val !== null && val !== undefined && val !== "") {
-                            if (val.toString().toLowerCase().includes(query)) {
-                                cell.classList.add('highlight-match');
-                            }
+                            if (val.toString().toLowerCase().includes(query)) cell.classList.add('highlight-match');
                         }
                     },
 
@@ -268,17 +322,12 @@
 
             function activateSheet(id) {
                 currentSheetId = id;
-                
                 sheets.forEach(sheet => {
                     if (sheet.id === id) {
-                        sheet.container.style.zIndex = '10';
-                        sheet.container.style.opacity = '1';
-                        sheet.container.style.pointerEvents = 'auto';
-                        sheetInstance = sheet.instance; // Re-bind global pointer for toolbars
+                        sheet.container.style.zIndex = '10'; sheet.container.style.opacity = '1'; sheet.container.style.pointerEvents = 'auto';
+                        sheetInstance = sheet.instance; 
                     } else {
-                        sheet.container.style.zIndex = '0';
-                        sheet.container.style.opacity = '0';
-                        sheet.container.style.pointerEvents = 'none';
+                        sheet.container.style.zIndex = '0'; sheet.container.style.opacity = '0'; sheet.container.style.pointerEvents = 'none';
                     }
                 });
                 renderTabs();
@@ -287,22 +336,14 @@
             function renderTabs() {
                 const container = document.getElementById('tabs-container');
                 container.innerHTML = '';
-                
                 sheets.forEach(sheet => {
                     const isActive = sheet.id === currentSheetId;
                     const tab = document.createElement('div');
-                    
                     let classes = 'px-4 py-1.5 cursor-pointer text-sm font-medium rounded-t-lg transition-colors flex items-center whitespace-nowrap border-t border-l border-r ';
-                    if (isActive) {
-                        classes += 'bg-white dark:bg-slate-900 text-green-600 dark:text-green-400 border-gray-300 dark:border-slate-700 -mb-px'; 
-                    } else {
-                        classes += 'bg-gray-200 dark:bg-slate-800 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-300 dark:hover:bg-slate-700 mt-1';
-                    }
+                    if (isActive) classes += 'bg-white dark:bg-slate-900 text-green-600 dark:text-green-400 border-gray-300 dark:border-slate-700 -mb-px'; 
+                    else classes += 'bg-gray-200 dark:bg-slate-800 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-300 dark:hover:bg-slate-700 mt-1';
                     tab.className = classes;
-                    
-                    const nameSpan = document.createElement('span');
-                    nameSpan.innerText = sheet.name;
-                    tab.appendChild(nameSpan);
+                    tab.innerHTML = `<span>${sheet.name}</span>`;
                     
                     if (sheets.length > 1) {
                         const closeBtn = document.createElement('span');
@@ -310,169 +351,95 @@
                         closeBtn.className = 'ml-2 flex items-center text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 p-0.5';
                         closeBtn.onclick = (e) => {
                             e.stopPropagation();
-                            deleteSheet(sheet.id);
+                            const idx = sheets.findIndex(s => s.id === sheet.id);
+                            if(confirm(`Close "${sheets[idx].name}"?`)) {
+                                sheets[idx].instance.destroy(); sheets[idx].container.remove(); sheets.splice(idx, 1);
+                                if(currentSheetId === sheet.id) activateSheet(sheets[Math.max(0, idx - 1)].id); else renderTabs();
+                            }
                         };
                         tab.appendChild(closeBtn);
                     }
-                    
                     tab.onclick = () => activateSheet(sheet.id);
                     container.appendChild(tab);
                 });
             }
 
-            function deleteSheet(id) {
-                if(sheets.length <= 1) return;
-                const index = sheets.findIndex(s => s.id === id);
-                if(confirm(`Close "${sheets[index].name}"?`)) {
-                    sheets[index].instance.destroy();
-                    sheets[index].container.remove();
-                    sheets.splice(index, 1);
-                    if(currentSheetId === id) activateSheet(sheets[Math.max(0, index - 1)].id);
-                    else renderTabs();
-                }
-            }
-
-            // Start Initial State
             createSheet('Sheet 1', [[]]);
-
-            // --- Custom Double-Click Swap Engine ---
-            document.getElementById('sheets-wrapper').addEventListener('dblclick', function(e) {
-                if(!sheetInstance) return;
-
-                if (e.target.tagName === 'TD' && e.target.closest('thead')) {
-                    let colIndex = e.target.getAttribute('data-x');
-                    if (colIndex !== null) {
-                        let colLetter = jspreadsheet.helpers.getColumnName(colIndex);
-                        let targetLetter = prompt(`SWAP COLUMN:\n\nYou double-clicked Column ${colLetter}.\nEnter column letter to swap with (e.g., A, B, C):`);
-                        
-                        if (targetLetter) {
-                            let targetIndex = jspreadsheet.helpers.getIdFromColumnName(targetLetter.toUpperCase(), true);
-                            if (targetIndex !== null && targetIndex >= 0 && targetIndex !== parseInt(colIndex)) {
-                                let data = sheetInstance.getData();
-                                let maxCol = Math.max(parseInt(colIndex), targetIndex);
-                                for(let i = 0; i < data.length; i++) {
-                                    while(data[i].length <= maxCol) data[i].push(""); 
-                                    let temp = data[i][colIndex];
-                                    data[i][colIndex] = data[i][targetIndex];
-                                    data[i][targetIndex] = temp;
-                                }
-                                sheetInstance.setData(data); 
-                            }
-                        }
-                    }
-                }
-                else if (e.target.tagName === 'TD' && e.target.classList.contains('jexcel_row')) {
-                    let rowIndex = e.target.parentElement.getAttribute('data-y');
-                    if (rowIndex !== null) {
-                        let displayRow = parseInt(rowIndex) + 1;
-                        let targetRow = prompt(`SWAP ROW:\n\nYou double-clicked Row ${displayRow}.\nEnter row number to swap with:`);
-                        
-                        if (targetRow) {
-                            let tIndex = parseInt(targetRow) - 1;
-                            if (!isNaN(tIndex) && tIndex >= 0 && tIndex !== parseInt(rowIndex)) {
-                                let data = sheetInstance.getData();
-                                let maxRow = Math.max(parseInt(rowIndex), tIndex);
-                                while(data.length <= maxRow) data.push(new Array(data[0].length).fill("")); 
-                                let temp = data[rowIndex];
-                                data[rowIndex] = data[tIndex];
-                                data[tIndex] = temp;
-                                sheetInstance.setData(data);
-                            }
-                        }
-                    }
-                }
-            });
 
             // --- Theme Toggler ---
             const btnTheme = document.getElementById('btn-theme');
-            const themeIcon = document.getElementById('theme-icon');
             btnTheme.addEventListener('click', () => {
                 document.documentElement.classList.toggle('dark');
-                themeIcon.innerText = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
+                document.getElementById('theme-icon').innerText = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
             });
 
-            // --- Context-Aware Insertions ---
+            // --- Tools: Insert ---
             document.getElementById('btn-add-row').addEventListener('click', () => {
-                if (lastSelectedRow !== null) sheetInstance.insertRow(1, parseInt(lastSelectedRow), false);
-                else sheetInstance.insertRow(); 
+                if (lastSelectedRow !== null) sheetInstance.insertRow(1, parseInt(lastSelectedRow), false); else sheetInstance.insertRow(); 
             });
-
             document.getElementById('btn-add-col').addEventListener('click', () => {
-                if (lastSelectedCol !== null) sheetInstance.insertColumn(1, parseInt(lastSelectedCol), false);
-                else sheetInstance.insertColumn(); 
+                if (lastSelectedCol !== null) sheetInstance.insertColumn(1, parseInt(lastSelectedCol), false); else sheetInstance.insertColumn(); 
             });
 
-            // --- Character Limit Logic ---
-            const btnHighlightLimit = document.getElementById('btn-highlight-limit');
-            const btnClearHighlight = document.getElementById('btn-clear-highlight');
+            // --- Tools: Sort ---
+            document.getElementById('btn-sort-asc').addEventListener('click', () => {
+                if (lastSelectedCol !== null) sheetInstance.orderBy(lastSelectedCol, 0); else alert("Select a column to sort.");
+            });
+            document.getElementById('btn-sort-desc').addEventListener('click', () => {
+                if (lastSelectedCol !== null) sheetInstance.orderBy(lastSelectedCol, 1); else alert("Select a column to sort.");
+            });
+
+            // --- Tools: Limits ---
             const charLimitInput = document.getElementById('char-limit-input');
             const clearLimits = () => document.querySelectorAll('.highlight-limit').forEach(c => c.classList.remove('highlight-limit'));
 
-            btnHighlightLimit.addEventListener('click', () => {
+            document.getElementById('btn-highlight-limit').addEventListener('click', () => {
                 clearLimits(); 
                 const limit = parseInt(charLimitInput.value);
                 if (isNaN(limit) || limit < 1) return alert("Enter a valid number.");
-                
                 document.querySelectorAll('tbody td[data-x]').forEach(cell => {
                     if ((cell.innerText || "").length > limit) cell.classList.add('highlight-limit');
                 });
             });
+            document.getElementById('btn-clear-highlight').addEventListener('click', () => { charLimitInput.value = ''; clearLimits(); });
 
-            btnClearHighlight.addEventListener('click', () => { charLimitInput.value = ''; clearLimits(); });
-
-            // --- Window Toggles ---
-            document.getElementById('btn-clear').addEventListener('click', () => { 
-                if(confirm("Clear active sheet data?")) sheetInstance.setData([[]]); 
-            });
-            
+            // --- Tools: Toggles ---
+            document.getElementById('btn-clear').addEventListener('click', () => { if(confirm("Clear active sheet data?")) sheetInstance.setData([[]]); });
             document.getElementById('btn-fullscreen').addEventListener('click', () => {
-                if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.log(err));
-                else document.exitFullscreen();
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e=>{}); else document.exitFullscreen();
             });
 
             document.getElementById('btn-freeze').addEventListener('click', () => {
                 isFrozen = !isFrozen;
                 const config = sheetInstance.getConfig();
                 const currentData = sheetInstance.getData();
-                config.freezeColumns = isFrozen ? 1 : 0;
-                config.freezeRows = isFrozen ? 1 : 0;
-                
-                // Locate the active sheet object and reconstruct its container
+                config.freezeColumns = isFrozen ? 1 : 0; config.freezeRows = isFrozen ? 1 : 0;
                 const activeObj = sheets.find(s => s.id === currentSheetId);
                 activeObj.instance.destroy();
-                
                 activeObj.instance = jspreadsheet(activeObj.container, config);
                 activeObj.instance.setData(currentData);
                 sheetInstance = activeObj.instance;
-
                 document.getElementById('btn-freeze').classList.toggle('bg-green-100');
                 document.getElementById('btn-freeze').classList.toggle('dark:bg-slate-600');
             });
 
-            document.getElementById('btn-new').addEventListener('click', () => {
-                createSheet(`Sheet ${sheetCounter + 1}`, [[]]);
-            });
+            document.getElementById('btn-new').addEventListener('click', () => createSheet(`Sheet ${sheetCounter + 1}`, [[]]));
 
-            // --- BULK Smart Upload Architecture ---
+            // --- BULK Upload Engine ---
             const fileInput = document.getElementById('file-input');
             document.getElementById('btn-upload').addEventListener('click', () => fileInput.click());
 
             const parseFile = (file, ext) => {
                 return new Promise((resolve, reject) => {
-                    if (ext === 'csv') {
-                        Papa.parse(file, { skipEmptyLines: true, complete: res => resolve(res.data), error: err => reject(err) });
-                    } else {
+                    if (ext === 'csv') Papa.parse(file, { skipEmptyLines: true, complete: res => resolve(res.data), error: err => reject(err) });
+                    else {
                         const reader = new FileReader();
                         reader.onload = e => {
                             try {
                                 const workbook = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
-                                const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { 
-                                    header: 1, defval: "", raw: false, dateNF: 'yyyy-mm-dd hh:mm:ss' 
-                                });
-                                resolve(rawData);
+                                resolve(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, defval: "", raw: false, dateNF: 'yyyy-mm-dd hh:mm:ss' }));
                             } catch(err) { reject(err); }
                         };
-                        reader.onerror = err => reject(err);
                         reader.readAsBinaryString(file);
                     }
                 });
@@ -481,60 +448,39 @@
             fileInput.addEventListener('change', async (e) => {
                 const files = Array.from(e.target.files);
                 if (files.length === 0) return;
-
-                document.getElementById('loading-text').innerText = `Processing ${files.length} file(s)...`;
                 overlay.classList.remove('hidden');
 
                 try {
                     for (let i = 0; i < files.length; i++) {
                         const file = files[i];
-                        const fileExt = file.name.split('.').pop().toLowerCase();
+                        const data = await parseFile(file, file.name.split('.').pop().toLowerCase());
                         const baseName = file.name.split('.')[0];
                         
-                        const data = await parseFile(file, fileExt);
-                        
-                        // If it's the first upload, and the initial sheet is completely empty, replace it.
                         if (i === 0 && sheets.length === 1 && sheets[0].name === 'Sheet 1' && JSON.stringify(sheetInstance.getData()) === '[]') {
-                            sheets[0].name = baseName;
-                            sheetInstance.setData(data);
-                            renderTabs();
-                        } else {
-                            createSheet(baseName, data);
-                        }
+                            sheets[0].name = baseName; sheetInstance.setData(data); renderTabs();
+                        } else createSheet(baseName, data);
                     }
-                } catch (err) {
-                    alert("Error parsing some files. Check formatting.");
-                } finally {
-                    overlay.classList.add('hidden');
-                    e.target.value = ''; 
-                }
+                } catch (err) { alert("Error parsing some files. Check formatting."); } 
+                finally { overlay.classList.add('hidden'); e.target.value = ''; }
             });
 
-            // --- Multi-Sheet Export System ---
+            // --- Multi-Sheet Export Engine ---
             const getDocName = () => document.getElementById('doc-title').value.trim() || 'Workbook';
 
             document.getElementById('export-csv').addEventListener('click', (e) => { 
                 e.preventDefault(); dropdownContent.classList.add('hidden');
-                const finalData = [(sheetInstance.getHeaders() || "").split(','), ...sheetInstance.getData()];
                 const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(finalData), "Sheet1");
-                const activeName = sheets.find(s => s.id === currentSheetId).name;
-                XLSX.writeFile(workbook, `${activeName}.csv`);
+                XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([(sheetInstance.getHeaders() || "").split(','), ...sheetInstance.getData()]), "Sheet1");
+                XLSX.writeFile(workbook, `${sheets.find(s => s.id === currentSheetId).name}.csv`);
             });
 
             document.getElementById('export-xlsx').addEventListener('click', (e) => { 
                 e.preventDefault(); dropdownContent.classList.add('hidden');
-                
                 const workbook = XLSX.utils.book_new();
                 sheets.forEach((sheet, index) => {
-                    let sName = sheet.name.substring(0, 31).replace(/[\\/?*\[\]]/g, ''); // Fix invalid excel characters
-                    if(!sName) sName = `Tab${index+1}`;
-                    
-                    const finalData = [(sheet.instance.getHeaders() || "").split(','), ...sheet.instance.getData()];
-                    const worksheet = XLSX.utils.aoa_to_sheet(finalData);
-                    XLSX.utils.book_append_sheet(workbook, worksheet, sName);
+                    let sName = sheet.name.substring(0, 31).replace(/[\\/?*\[\]]/g, '');
+                    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([(sheet.instance.getHeaders() || "").split(','), ...sheet.instance.getData()]), sName || `Tab${index+1}`);
                 });
-                
                 XLSX.writeFile(workbook, `${getDocName()}.xlsx`);
             });
             
